@@ -3,14 +3,12 @@
   (:require [om.core :as om :include-macros true]
             [weasel.repl :as ws-repl]
             [goog.style :as gstyle]
-            [ankha.core :as ankha]
             [goog.storage.mechanism.mechanismfactory]
             [cljs-http.client :as http]
             [djdash.utils :as utils]
+            [om.dom :as dom]
             [clojure.walk :as walk]
             [clojure.browser.dom :as ddom]
-            [om-tools.core :refer-macros [defcomponent]]
-            [om-tools.dom :as dom :include-macros true]
             [cljs.core.async :as async :refer [put! chan <!]])
   (:import [goog.net Jsonp]
            [goog Uri]))
@@ -51,23 +49,26 @@
 
 
 
-(defcomponent playing-view
+(defn playing-view
   [{:keys [playing listeners url timeout]} owner]
-  (will-mount
-   [_]
-   (let [c (chan)]
-     (go (while true
-           (jsonp-playing url)
-           (<! (async/timeout timeout))))))
-  (render-state
-   [_ s]
-   (dom/div
-    (dom/div {:id "playing"}
-             (dom/div "Now Playing:")
-             (dom/div  playing ))
-    (dom/div {:id "listeners"}
-             (dom/div "Listeners:")
-             (dom/div listeners)))))
+  (reify
+    om/IWillMount
+    (will-mount
+      [_]
+      (let [c (chan)]
+        (go (while true
+              (jsonp-playing url)
+              (<! (async/timeout timeout))))))
+    om/IRenderState
+    (render-state
+      [_ s]
+      (dom/div nil
+               (dom/div #js {:id "playing"}
+                        (dom/div nil "Now Playing:")
+                        (dom/div  nil playing ))
+               (dom/div #js {:id "listeners"}
+                        (dom/div nil "Listeners:")
+                        (dom/div nil listeners))))))
 
 
 
@@ -105,39 +106,43 @@
                          (.set storage :user u)
                          (assoc-in o [:chat :user] u ))))))
 
-(defcomponent chat-view
+(defn chat-view
   [{:keys [users messages user url errors count id timeout] :as curs} owner]
-  (will-mount
-   [_]
-   (let [c (chan)]
-     (go (while true
-           ;; TODO: the message to send!
-           (update-chat! "")
-           (<! (async/timeout timeout))))))
-  (did-mount
-   [_]
-   (swap! app-state assoc-in [:chat :user]  (.get storage :user))
-   (when (-> @app-state :chat :user empty?)
-     (login)))
-  (render-state
-   [_ s]
-   (dom/div {:id "chat"}
-            (dom/div {:id "users"
-                      :dangerously-set-inner-HTML  {:__html users}})
-            (dom/div {:id "messages"
-                      :dangerously-set-inner-HTML  {:__html (apply str (interpose "\n" messages))}})
-            (if (empty? user)
-              (dom/button {:on-click (fn [_] (login))} "Log In")
-              (dom/div
-               (str user ": ")
-               (dom/input
-                {:id "chatinput"
-                 ;;:on-change #(js/console.log %)
-                 :on-key-down #(when (= (.-key %) "Enter")
-                                 (om/update! curs :message (.. % -target -value))
-                                 (ddom/set-value (.. % -target)  "")
-                                 )})
-               )))))
+  (reify
+    om/IWillMount
+    (will-mount
+      [_]
+      (let [c (chan)]
+        (go (while true
+              ;; TODO: the message to send!
+              (update-chat! "")
+              (<! (async/timeout timeout))))))
+    om/IDidMount
+    (did-mount
+      [_]
+      (swap! app-state assoc-in [:chat :user]  (.get storage :user))
+      (when (-> @app-state :chat :user empty?)
+        (login)))
+    om/IRenderState
+    (render-state
+      [_ s]
+      (dom/div {:id "chat"}
+               (dom/div #js {:id "users"
+                             :dangerouslySetInnerHTML  #js {:__html users}})
+               (dom/div #js {:id "messages"
+                             :dangerouslySetInnerHTML  #js {:__html (apply str (interpose "\n" messages))}})
+               (if (empty? user)
+                 (dom/button #js {:onClick (fn [_] (login))} "Log In")
+                 (dom/div nil
+                          (str user ": ")
+                          (dom/input
+                           #js {:id "chatinput"
+                                ;;:on-change #(js/console.log %)
+                                :onKeyDown #(when (= (.-key %) "Enter")
+                                              (om/update! curs :message (.. % -target -value))
+                                              (ddom/set-value (.. % -target)  "")
+                                              )})
+                          ))))))
 
 ;;
 
