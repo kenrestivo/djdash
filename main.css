@@ -13,3 +13,26 @@ div.led {
 .controls .btn-lg { 
   margin-right: 1em; 
 }
+
+
+
+#users {
+  height: 200px;
+  width: 200px;
+  overflow: auto;
+  border: 1px solid #666;
+  padding: 8px;
+}
+
+
+#messages {
+  height: 200px;
+  width: 100%;
+  overflow: auto;
+  border: 1px solid #666;
+  padding: 8px;
+}
+
+input { color: black; }
+
+button { color: black; }

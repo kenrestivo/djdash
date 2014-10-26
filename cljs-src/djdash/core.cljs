@@ -2,10 +2,18 @@
   (:require-macros [cljs.core.async.macros :refer [go]])
   (:require [om.core :as om :include-macros true]
             [weasel.repl :as ws-repl]
-            [ankha.core :as ankha]
             [goog.style :as gstyle]
-            [om.dom :as dom :include-macros true]
-            [cljs.core.async :as async :refer [put! chan <!]]))
+            [ankha.core :as ankha]
+            [goog.storage.mechanism.mechanismfactory]
+            [cljs-http.client :as http]
+            [djdash.utils :as utils]
+            [clojure.walk :as walk]
+            [clojure.browser.dom :as ddom]
+            [om-tools.core :refer-macros [defcomponent]]
+            [om-tools.dom :as dom :include-macros true]
+            [cljs.core.async :as async :refer [put! chan <!]])
+  (:import [goog.net Jsonp]
+           [goog Uri]))
 
 
 (comment
@@ -13,165 +21,155 @@
   (enable-console-print!)
   )
 
-(def debug-stuff (atom nil))
 
-(def app-state (atom {:num 0
-                      :run? true
-                      :bit-count 8
-                      :timeout 2000}))
+(def storage (goog.storage.mechanism.mechanismfactory.create))
 
-(defn bit-match 
-  "bit-test over a list of bit indices"
-  [n bits]
-  (mapv (partial bit-test n) bits))
+(def strs {:checking "Checking..."})
 
-
-(defn convert-binary
-  [n nbits]
-  (bit-match n (-> nbits range reverse)))
-
-
-
-(defn update-bin
-  [{:keys [num bit-count] :as state}]
-  (assoc state :bits (convert-binary num bit-count)))
-
-(defn increment-state
-  [state]
-  (-> state
-      (update-in [:num] inc)
-      update-bin))
+(def app-state (atom {:playing {:playing (:checking strs)
+                                :listeners (:checking strs)
+                                :timeout 30000
+                                :url js/playing_url}
+                      :chat {:url js/chat_url
+                             :count 1413798924 ;; could be zero, but who wants to read all that?
+                             :user ""
+                             :users (:checking strs)
+                             :id (int (rand 999999))
+                             :errors ""
+                             :message ""
+                             :timeout 2000
+                             :messages []
+                             :lines ""}
+                      }))
 
 
-(defn get-width
-  [owner]
-  (some-> owner
-          om/get-node
-          gstyle/getSize
-          .-width))
-
-
-(defn led-block-width-px
-  [width]
-  (->  width
-       (/ (:bit-count @app-state) 3.2)
-       int
-       (str "px")))
+;; terrible old js-style action-at-a-distance, but i couldn't get async to work right
+(defn jsonp-playing
+  [uri]
+  (utils/jsonp-wrap uri (fn [res]
+                          (swap! app-state update-in  [:playing] #(merge % (utils/un-json res))))))
 
 
 
-(defn led
-  [cursor owner]
-  (reify
-    om/IRenderState
-    (render-state [_ {:keys [width color]}]
-      (dom/div #js {:className (str "led" " "
-                                    (if (.valueOf cursor)
-                                      (str "led-" color)
-                                      ""))
-                    :style #js {:width width
-                                :height width}}
-               nil))))
+(defcomponent playing-view
+  [{:keys [playing listeners url timeout]} owner]
+  (will-mount
+   [_]
+   (let [c (chan)]
+     (go (while true
+           (jsonp-playing url)
+           (<! (async/timeout timeout))))))
+  (render-state
+   [_ s]
+   (dom/div
+    (dom/div {:id "playing"}
+             (dom/div "Now Playing:")
+             (dom/div  playing ))
+    (dom/div {:id "listeners"}
+             (dom/div "Listeners:")
+             (dom/div listeners)))))
 
 
-(defn play-pause
-  "a terrible hack, but i don't know the om-ish way to do this yet"
+
+
+
+(defn process-chat
+  [{:keys [lines] :as new}]
+  (swap! app-state update-in [:chat]
+         (fn [{:keys [messages] :as old}]
+           (merge old new {:messages (concat (utils/reverse-split lines)
+                                             messages)}))))
+
+
+
+(defn update-chat!
+  [msg]
+  (let [{{:keys [url user count id message]}  :chat} @app-state
+        u (str url "?" (http/generate-query-string {:user user
+                                                    :msg message
+                                                    :lineNo count
+                                                    :chatId id}))]
+    (swap! app-state assoc-in [:chat :message] "")
+    (utils/jsonp-wrap  u
+                       (if (empty? msg)
+                         ;; hack to avoid double-messages
+                         #(-> % utils/un-json process-chat)
+                         identity))))
+
+
+(defn login
   []
-  (if (:run? @app-state)
-    "Pause"
-    (if (< 0 (:num @app-state))
-      "Continue"
-      "Start")))
+  (let [u (js/prompt "who are you, dj person?")]
+    (when (not (empty? u))
+      (swap! app-state (fn [o]
+                         (.set storage :user u)
+                         (assoc-in o [:chat :user] u ))))))
 
+(defcomponent chat-view
+  [{:keys [users messages user url errors count id timeout] :as curs} owner]
+  (will-mount
+   [_]
+   (let [c (chan)]
+     (go (while true
+           ;; TODO: the message to send!
+           (update-chat! "")
+           (<! (async/timeout timeout))))))
+  (did-mount
+   [_]
+   (swap! app-state assoc-in [:chat :user]  (.get storage :user))
+   (when (-> @app-state :chat :user empty?)
+     (login)))
+  (render-state
+   [_ s]
+   (dom/div {:id "chat"}
+            (dom/div {:id "users"
+                      :dangerously-set-inner-HTML  {:__html users}})
+            (dom/div {:id "messages"
+                      :dangerously-set-inner-HTML  {:__html (apply str (interpose "\n" messages))}})
+            (if (empty? user)
+              (dom/button {:on-click (fn [_] (login))} "Log In")
+              (dom/div
+               (str user ": ")
+               (dom/input
+                {:id "chatinput"
+                 ;;:on-change #(js/console.log %)
+                 :on-key-down #(when (= (.-key %) "Enter")
+                                 (om/update! curs :message (.. % -target -value))
+                                 (ddom/set-value (.. % -target)  "")
+                                 )})
+               )))))
 
-(defn toggle-button
-  [_ owner]
+;;
+
+(defn main-view
+  [{:keys [playing chat]} owner]
   (reify
     om/IRenderState
-    (render-state [_ {:keys [pause]}]
-      (dom/button
-       #js {:className "btn btn-primary btn-lg"
-            :onClick (fn [e] (put! pause :toggle))}
-       (play-pause)))))
-
-
-(defn reset-button
-  [_ owner]
-  (reify
-    om/IRenderState
-    (render-state [_ {:keys [reset]}]
-      (dom/button
-       #js {:className "btn btn-primary btn-lg"
-            :onClick (fn [e] (put! reset :reset))}
-       "Reset"))))
-
-
-(defn led-block
-  [{:keys [bits] :as cursor} owner]
-  (reify
-    om/IInitState
-    (init-state [_]
-      {:color "green"})
-    om/IDidMount
-    (did-mount [this]
-      (om/set-state! owner :led-width (-> owner get-width led-block-width-px))
-      (js/window.addEventListener "resize"
-                                  (fn [_]
-                                    (let [resized (-> owner get-width led-block-width-px)]
-                                      ;;(js/console.log resized)
-                                      (om/set-state! owner :led-width resized)))))
-    om/IRenderState
-    (render-state [_ {:keys [led-width color]}]
-      (apply dom/div #js {:className "leds"
-                          :ref "ledblock"}
-             (om/build-all led bits
-                           {:state {:width led-width
-                                    :color color}})))))
+    (render-state [_ s]
+      (dom/div nil
+               (om/build playing-view playing)
+               (om/build chat-view chat)
+               ))))
 
 
 
-(defn bin-app
-  [{:keys [bits num] :as cursor} owner]
-  (reify
-    om/IInitState
-    (init-state [_]
-      {:pause (chan)
-       :reset (chan)})
-    om/IWillMount
-    (will-mount [_]
-      (om/transact! cursor update-bin) ;; start off with something in binary
-      (let [pause (om/get-state owner :pause)
-            reset (om/get-state owner :reset)]
-        (go (while true
-              (let [_ (<! pause)] ;; TODO: grab the toggle val from the button?
-                (om/transact! cursor :run? not))))
-        (go (while true
-              (let [_ (<! reset)] 
-                (om/update! cursor :num 0)
-                (om/transact! cursor update-bin)))))
-      ;; TODO: seangrove suggests "pulling it out into a centralized controller"
-      (go (while true
-            ;; NOTE: MUST dereference cursor to get current state!!!
-            (when (:run? @cursor)
-              (om/transact! cursor increment-state))
-            (<! (cljs.core.async/timeout (:timeout @cursor))))))
-    om/IRenderState
-    (render-state [_ {:keys [pause reset]}]
-      (dom/div #js {:className "container-fluid"}
-               (om/build led-block cursor)
-               (dom/div #js {:className "clearfix"} nil) ;; bleah
-               (dom/div #js {:className "controls"}
-                        (om/build reset-button cursor {:init-state {:reset reset}})
-                        (om/build toggle-button cursor {:init-state {:pause pause}}))))))
+(om/root
+ main-view
+ app-state
+ {:target (. js/document (getElementById "content"))})
 
 
 
+(comment
+  ;; TODO: compile only in dev mode?
+  (om/root
+   ankha/inspector
+   app-state
+   {:target (js/document.getElementById "inspect")})
+  )
 
 
-(defn test-app
-  "If everythign goes horribly wrong, try this"
-  [{:keys [num]} owner]
-  (dom/h2 nil (str num)))
+
 
 ;; TODO: auto-reconnect
 ;; TODO: conditionally compile this only if in dev mode
@@ -180,9 +178,11 @@
   (ws-repl/connect "ws://localhost:9001" :verbose false))
 
 
-(om/root
- bin-app
- app-state
- {:target (. js/document (getElementById "content"))})
 
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(comment
+
+
+
+  )
