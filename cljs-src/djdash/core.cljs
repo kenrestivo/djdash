@@ -47,7 +47,15 @@
   (utils/jsonp-wrap uri (fn [res]
                           (swap! app-state update-in  [:playing] #(merge % (utils/un-json res))))))
 
-
+(defn on-air-light
+  [playing owner]
+  (reify
+    om/IRender
+    (render
+      [_]
+      (dom/div #js {:id "on_air"}
+               (when (->> playing (re-find  #"[LIVE!]") boolean)
+                 "ON AIR")))))
 
 (defn playing-view
   [{:keys [playing listeners url timeout]} owner]
@@ -63,6 +71,7 @@
     (render-state
       [_ s]
       (dom/div nil
+               (om/build on-air-light playing)
                (dom/div #js {:id "playing"}
                         (dom/div nil "Now Playing:")
                         (dom/div  nil playing ))
@@ -187,7 +196,5 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (comment
-
-
-
+  
   )
