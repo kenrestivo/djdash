@@ -37,8 +37,8 @@
                              :message ""
                              :timeout 2000
                              :messages []
-                             :lines ""}
-                      }))
+                             :lines ""}}))
+
 
 
 ;; terrible old js-style action-at-a-distance, but i couldn't get async to work right
