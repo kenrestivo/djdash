@@ -53,8 +53,8 @@
     om/IRender
     (render
       [_]
-      (dom/div #js {:id "on_air"}
-               (when (->> playing (re-find  #"[LIVE!]") boolean)
+      (when (->> playing (re-find  #"^\[LIVE\!\].*?") boolean)
+        (dom/div #js {:id "on_air"}
                  "ON AIR")))))
 
 (defn playing-view
@@ -196,5 +196,5 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (comment
-  
+
   )
