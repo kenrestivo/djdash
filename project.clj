@@ -4,10 +4,16 @@
 
   :dependencies [[org.clojure/clojure "1.6.0"]
                  [org.clojure/clojurescript "0.0-2371"] ;; 2322 for om? or ok with 2371?
-                 [weasel "0.4.1"]
+                 [weasel "0.4.2"]
                  [cljs-http "0.1.18"]
                  [com.taoensso/sente "1.2.0"]
-                 ;;[ankha "0.1.4"] 
+                 [com.stuartsierra/component "0.2.2"]
+                 [compojure "1.2.1"]
+                 [ring "1.3.1"]
+                 [environ "1.0.0"]
+                 [http-kit "2.1.19"]
+                 [clj-http "1.0.0"]
+                 [org.clojure/tools.trace "0.7.8"]
                  [org.clojure/core.async "0.1.346.0-17112a-alpha"]
                  [com.cemerick/piggieback "0.1.3"]
                  [om "0.8.0-alpha1"]]

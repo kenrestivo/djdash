@@ -47,15 +47,21 @@
   (utils/jsonp-wrap uri (fn [res]
                           (swap! app-state update-in  [:playing] #(merge % (utils/un-json res))))))
 
+(defn live?
+  [playing]
+  (->> playing
+       (re-find  #"^\[LIVE\!\].*?")
+       boolean))
+
 (defn on-air-light
   [playing owner]
   (reify
     om/IRender
     (render
       [_]
-      (when (->> playing (re-find  #"^\[LIVE\!\].*?") boolean)
-        (dom/div #js {:id "on_air"}
-                 "ON AIR")))))
+      (dom/div #js {:id "on_air"
+                    :className (if (live? playing) "live" "hidden")}
+               "ON AIR"))))
 
 (defn playing-view
   [{:keys [playing listeners url timeout]} owner]
@@ -73,11 +79,11 @@
       (dom/div nil
                (om/build on-air-light playing)
                (dom/div #js {:id "playing"}
-                        (dom/div nil "Now Playing:")
-                        (dom/div  nil playing ))
+                        (dom/span nil "Now Playing:")
+                        (dom/span  nil playing ))
                (dom/div #js {:id "listeners"}
-                        (dom/div nil "Listeners:")
-                        (dom/div nil listeners))))))
+                        (dom/span nil "Listeners:")
+                        (dom/span nil listeners))))))
 
 
 
@@ -146,6 +152,7 @@
                           (str user ": ")
                           (dom/input
                            #js {:id "chatinput"
+                                :placeholder "Say something here"
                                 ;;:on-change #(js/console.log %)
                                 :onKeyDown #(when (= (.-key %) "Enter")
                                               (om/update! curs :message (.. % -target -value))
@@ -160,7 +167,7 @@
   (reify
     om/IRenderState
     (render-state [_ s]
-      (dom/div nil
+      (dom/div #js {:className "row"}
                (om/build playing-view playing)
                (om/build chat-view chat)
                ))))
