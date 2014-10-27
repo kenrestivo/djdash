@@ -60,3 +60,8 @@ button { color: black; }
 
 /* hack, use bootstrap instead */
 #chatinput {width: 800px }
+
+
+#listener-chart { 
+  height: 400px;
+}

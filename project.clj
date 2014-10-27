@@ -13,6 +13,7 @@
                  [environ "1.0.0"]
                  [http-kit "2.1.19"]
                  [clj-http "1.0.0"]
+                 [com.andrewmcveigh/cljs-time "0.2.3" :exclusions [com.cemerick/austin]]
                  [org.clojure/tools.trace "0.7.8"]
                  [org.clojure/core.async "0.1.346.0-17112a-alpha"]
                  [com.cemerick/piggieback "0.1.3"]
@@ -40,4 +41,5 @@
                                    :pretty-print false
                                    :source-map  "djdash.js.map"
                                    :preamble ["react/react.min.js"]
-                                   :externs ["react/externs/react.js"]}}]})
+                                   :externs ["react/externs/react.js"
+                                             "dyraph-externs.js"]}}]})

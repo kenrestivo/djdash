@@ -1,5 +1,8 @@
 (ns djdash.utils
   (:require 
+   [cljs-time.format :as time]
+   [cljs-time.coerce :as coerce]
+   [cljs-time.core :as tcore]
    [clojure.walk :as walk]
    [clojure.string :as s])
   (:import [goog.net Jsonp]
@@ -42,8 +45,34 @@
        (remove (partial = ""))
        reverse))
 
+(defn d3-date
+  [d]
+  (time/unparse (time/formatters :mysql)  (coerce/from-long d)))
+
+(defn mangle-dygraph
+  [listeners]
+  (apply str
+         (concat ["Time,Listeners\n"]
+                 (for [[d l] listeners]
+                   (str  (d3-date d) "," l "\n")))))
+
+
 
 (comment
-  (def s "foo\nbar\nbaz")
+
+  (time/show-formatters)
+
+  (time/parse (time/formatters :hour-minute-second) 1001001)
+
+  (coerce/from-long (js/Date.now))
+
+  (time/unparse (time/formatters :hour-minute-second)  (coerce/from-long (js/Date.now)))
+
+  (tcore/local-date )
+
+  (tcore/local-date (coerce/from-long (js/Date.now)))
+
+  (time/unparse (time/formatters :hour-minute-second)   (tcore/local-date (coerce/from-long (js/Date.now))))
+
 
   )

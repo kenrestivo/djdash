@@ -19,6 +19,7 @@
   (enable-console-print!)
   )
 
+(def listener-node-name "listener-chart")
 
 (def storage (goog.storage.mechanism.mechanismfactory.create))
 
@@ -26,6 +27,7 @@
 
 (def app-state (atom {:playing {:playing (:checking strs)
                                 :listeners (:checking strs)
+                                :listener-history []
                                 :timeout 30000
                                 :url js/playing_url}
                       :chat {:url js/chat_url
@@ -45,7 +47,12 @@
 (defn jsonp-playing
   [uri]
   (utils/jsonp-wrap uri (fn [res]
-                          (swap! app-state update-in  [:playing] #(merge % (utils/un-json res))))))
+                          (swap! app-state (fn [s]
+                                             (let [{:keys [listeners] :as new-data} (utils/un-json res)]
+                                               (-> s
+                                                   (update-in  [:playing] merge  new-data)
+                                                   (update-in  [:playing :listener-history] conj [(js/Date.now)
+                                                                                                   listeners]))))))))
 
 (defn live?
   [playing]
@@ -191,17 +198,50 @@
 
 ;;
 
+
+
+
+(defn line-graph
+  [data]
+  (js/Dygraph.
+   (js/document.getElementById listener-node-name)
+   (utils/mangle-dygraph data)))
+
+
+(defn line-chart
+  [{:keys [listeners listener-history]} owner]
+  (reify
+    om/IDidMount
+    (did-mount [this]
+      (line-graph listener-history))
+    om/IDidUpdate
+    (did-update [this prev-props prev-state]
+      (when (not= prev-props listener-history)
+        (.remove (.-firstChild (om/get-node owner listener-node-name)))
+        (line-graph listener-history)))
+    om/IRender
+    (render [this]
+      (dom/div #js {:react-key listener-node-name 
+                    :ref listener-node-name       
+                    :id listener-node-name}))))
+
+
+
+
 (defn main-view
   [{:keys [playing chat]} owner]
   (reify
     om/IRenderState
     (render-state [_ s]
-      (dom/div #js {:id "annoying-placeholder"} ;; annoying
-               (dom/div #js {:className "row"} ;; annoying
-                        (dom/div #js {:className "col-md-6"}
-                                 (om/build playing-view playing))
-                        (dom/div #js {:className "col-md-4"}
-                                 (om/build listeners-view playing)))
+      (dom/div #js {:id "annoying-placeholder"} ;; annoying               
+               (dom/div #js {:className "row"} 
+                        (dom/div #js {:className "col-md-2"}
+                                 (dom/div #js {:className "row"} 
+                                          (om/build playing-view playing)
+                                          (om/build listeners-view playing)))
+                        (dom/div #js {:className "col-md-8"}
+                                 (om/build line-chart playing)))
+               
                (dom/div #js {:className "row"}
                         (dom/div #js {:className "col-md-4"}
                                  (om/build chat-users chat)))
@@ -242,4 +282,18 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (comment
 
+  (swap! app-state assoc-in  [:playing :listener-history] [8 2 0 4 12 3 4])
+
+  (d3-date (js/Date.now))
+
+  (swap! app-state assoc-in  [:chat :timeout] 120000)
+  
+  (swap! app-state assoc-in  [:playing :timeout] 1000)
+  
+  (swap! app-state update-in  [:playing :listener-history] conj {:x (js/Date.now) :y (rand 20)})
+
+  (->  @app-state :playing :listener-history)
+
+  (utils/mangle-dygraph (-> @app-state :playing :listener-history))
+  
   )
