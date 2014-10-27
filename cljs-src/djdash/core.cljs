@@ -52,7 +52,7 @@
                                                (-> s
                                                    (update-in  [:playing] merge  new-data)
                                                    (update-in  [:playing :listener-history] conj [(js/Date.now)
-                                                                                                   listeners]))))))))
+                                                                                                  listeners]))))))))
 
 (defn live?
   [playing]
@@ -205,14 +205,22 @@
 (defn line-chart
   [{:keys [listeners listener-history]} owner]
   (reify
+    om/IInitState
+    (init-state [_]
+      {:listener-chart nil})
     om/IDidMount
     (did-mount [this]
-      (line-graph listener-history))
+      (let [g (line-graph listener-history)]
+        (om/set-state! owner :listener-chart g)
+        g))
     om/IDidUpdate
     (did-update [this prev-props prev-state]
       (when (not= prev-props listener-history)
+        ;;(js/console.log (om/get-state owner :listener-chart)) 
         (.remove (.-firstChild (om/get-node owner listener-node-name)))
         (line-graph listener-history)))
+    ;; does not work
+    ;; (.updateOptions (om/get-state owner :listener-chart) (clj->js {:file (utils/mangle-dygraph* listener-history)}))))
     om/IRender
     (render [this]
       (dom/div #js {:react-key listener-node-name 
@@ -275,3 +283,17 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(comment
+
+  (do
+    (swap! app-state assoc-in  [:chat :timeout] 120000)
+    (swap! app-state assoc-in  [:playing :timeout] 1000))
+
+  
+  (-> @app-state :playing :listener-history utils/mangle-dygraph*)
+
+  (vec '(1 2 3))
+
+  (js/console.log (clj->js {:file  (-> @app-state :playing :listener-history utils/mangle-dygraph*)}))
+  
+  )

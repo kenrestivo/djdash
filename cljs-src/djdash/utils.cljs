@@ -49,12 +49,17 @@
   [d]
   (time/unparse (time/formatters :mysql)  (coerce/from-long d)))
 
+(defn mangle-dygraph*
+  [listeners]
+  (vec (concat [["Time (UTC)" "Listeners"]]
+               (for [[d l] listeners]
+                 [(d3-date d) l]))))
+
 (defn mangle-dygraph
   [listeners]
   (apply str
-         (concat ["Time,Listeners\n"]
-                 (for [[d l] listeners]
-                   (str  (d3-date d) "," l "\n")))))
+         (for [[d l] (mangle-dygraph* listeners)]
+           (str  d "," l "\n"))))
 
 
 
