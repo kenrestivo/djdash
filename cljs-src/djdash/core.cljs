@@ -53,15 +53,11 @@
        (re-find  #"^\[LIVE\!\].*?")
        boolean))
 
-(defn on-air-light
-  [playing owner]
-  (reify
-    om/IRender
-    (render
-      [_]
-      (dom/div #js {:id "on_air"
-                    :className (if (live? playing) "label label-danger" "hidden")}
-               "LIVE!"))))
+(defn on-air-div
+  [playing]
+  (dom/div #js {:id "on_air"
+                :className (if (live? playing) "label label-danger paddy" "hidden")}
+           "LIVE!"))
 
 
 (defn listeners-view
@@ -75,16 +71,6 @@
                          "Listeners:")
                (dom/span nil listeners)))))
 
-
-(defn on-air-light-view
-  [{:keys [playing listeners url timeout]} owner]
-  (reify
-    om/IRenderState
-    (render-state
-      [_ s]
-      (dom/div #js {:className "row"}
-               (dom/div nil
-                        (om/build on-air-light playing))))))
 
 
 (defn playing-view
@@ -103,7 +89,9 @@
       (dom/div #js {:id "playing"}
                (dom/span #js {:className "text-label"}
                          "Now Playing:")
-               (dom/span  nil playing )))))
+               (dom/span  nil
+                          (on-air-div playing)
+                          playing )))))
 
 
 
@@ -210,9 +198,7 @@
     (render-state [_ s]
       (dom/div #js {:id "annoying-placeholder"} ;; annoying
                (dom/div #js {:className "row"} ;; annoying
-                        (dom/div #js {:className "col-md-2"}
-                                 (om/build on-air-light-view playing))
-                        (dom/div #js {:className "col-md-4"}
+                        (dom/div #js {:className "col-md-6"}
                                  (om/build playing-view playing))
                         (dom/div #js {:className "col-md-4"}
                                  (om/build listeners-view playing)))
