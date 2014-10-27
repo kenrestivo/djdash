@@ -63,6 +63,30 @@
                     :className (if (live? playing) "label label-danger" "hidden")}
                "LIVE!"))))
 
+
+(defn listeners-view
+  [{:keys [listeners]} owner]
+  (reify
+    om/IRenderState
+    (render-state
+      [_ s]
+      (dom/div #js {:id "listeners"}
+               (dom/span #js {:className "text-label"}
+                         "Listeners:")
+               (dom/span nil listeners)))))
+
+
+(defn on-air-light-view
+  [{:keys [playing listeners url timeout]} owner]
+  (reify
+    om/IRenderState
+    (render-state
+      [_ s]
+      (dom/div #js {:className "row"}
+               (dom/div nil
+                        (om/build on-air-light playing))))))
+
+
 (defn playing-view
   [{:keys [playing listeners url timeout]} owner]
   (reify
@@ -76,30 +100,20 @@
     om/IRenderState
     (render-state
       [_ s]
-      (dom/div #js {:className "row"}
-               (dom/div #js {:className "col-md-1"}
-                        (om/build on-air-light playing))
-               (dom/div #js {:id "playing"
-                             :className "col-md-6"}
-                        (dom/span #js {:className "text-label"}
-                                  "Now Playing:")
-                        (dom/span  nil playing ))
-               (dom/div #js {:id "listeners"
-                             :className "col-md-4"}
-                        (dom/span #js {:className "text-label"}
-                                  "Listeners:")
-                        (dom/span nil listeners))))))
-
-
+      (dom/div #js {:id "playing"}
+               (dom/span #js {:className "text-label"}
+                         "Now Playing:")
+               (dom/span  nil playing )))))
 
 
 
 (defn process-chat
-  [{:keys [lines] :as new}]
+  [{:keys [lines users] :as new}]
   (swap! app-state update-in [:chat]
          (fn [{:keys [messages] :as old}]
            (merge old new {:messages (concat (utils/reverse-split lines)
                                              messages)}))))
+                           
 
 
 
@@ -126,6 +140,28 @@
                          (.set storage :user u)
                          (assoc-in o [:chat :user] u ))))))
 
+
+(defn stupid-boilerplate
+  [u _]
+  (reify
+    om/IRender
+    (render [this]
+      (dom/li nil u))))
+
+(defn chat-users
+  [{:keys [users] :as curs} owner]
+  (reify
+    om/IRenderState
+    (render-state
+      [_ s]
+      (dom/div #js {:id "user-section"}
+               (dom/span #js {:className "text-label"} "In Chat Now:")
+               (apply dom/ul #js {:className "list-inline"}
+                      (for [u (utils/hack-users-list users)]
+                        (dom/li #js {:className "label label-default paddy"} u)))))))
+
+
+
 (defn chat-view
   [{:keys [users messages user url errors count id timeout] :as curs} owner]
   (reify
@@ -147,14 +183,10 @@
     (render-state
       [_ s]
       (dom/div {:id "chat"}
-               (dom/div #js {:id "user-section"}
-                        (dom/span #js {:className "text-label"} "Online now:")
-                        (dom/div #js {:id "users"
-                                      :dangerouslySetInnerHTML  #js {:__html users}}))
                (if (empty? user)
                  (dom/button #js {:onClick (fn [_] (login))} "Log In")
                  (dom/div nil
-                          (dom/label #js {:for "chatinput"
+                          (dom/label #js {:htmlFor "chatinput"
                                           :className "handle"}
                                      (str user ": "))
                           (dom/input
@@ -176,9 +208,20 @@
   (reify
     om/IRenderState
     (render-state [_ s]
-      (dom/div #js {:className "row"}
-               (om/build playing-view playing)
-               (om/build chat-view chat)
+      (dom/div #js {:id "annoying-placeholder"} ;; annoying
+               (dom/div #js {:className "row"} ;; annoying
+                        (dom/div #js {:className "col-md-2"}
+                                 (om/build on-air-light-view playing))
+                        (dom/div #js {:className "col-md-4"}
+                                 (om/build playing-view playing))
+                        (dom/div #js {:className "col-md-4"}
+                                 (om/build listeners-view playing)))
+               (dom/div #js {:className "row"}
+                        (dom/div #js {:className "col-md-4"}
+                                 (om/build chat-users chat)))
+               (dom/div #js {:className "row"}
+                        (dom/div  #js {:className "col-md-8"}
+                                  (om/build chat-view chat)))
                ))))
 
 

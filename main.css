@@ -52,5 +52,11 @@ button { color: black; }
   margin-right: 4px;
 }
 
+/* cough, hack */
+.paddy { 
+  margin-right: 6px;
+}
+
+
 /* hack, use bootstrap instead */
 #chatinput {width: 800px }

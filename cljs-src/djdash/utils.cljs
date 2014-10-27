@@ -1,6 +1,7 @@
 (ns djdash.utils
   (:require 
-   [clojure.walk :as walk])
+   [clojure.walk :as walk]
+   [clojure.string :as s])
   (:import [goog.net Jsonp]
            [goog Uri]))
 
@@ -25,6 +26,10 @@
             (map #(str "<li class='list-group-item'>" % "</li>\n"))
             (apply str))
        "</ul>"))
+
+(defn hack-users-list
+  [users-string]
+  (s/split users-string  #"<br>"))
 
 
 (defn reverse-split
