@@ -51,3 +51,6 @@ button { color: black; }
   color: #8CF5AB;
   margin-right: 4px;
 }
+
+/* hack, use bootstrap instead */
+#chatinput {width: 800px }
