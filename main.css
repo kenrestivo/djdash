@@ -16,7 +16,6 @@ div.led {
 
 
 #users {
-  height: 200px;
   width: 200px;
   overflow: auto;
   border: 1px solid #666;
@@ -24,8 +23,7 @@ div.led {
 }
 
 
-#messages {
-  height: 200px;
+.old-messages {
   width: 100%;
   overflow: auto;
   border: 1px solid #666;
@@ -35,3 +33,21 @@ div.led {
 input { color: black; }
 
 button { color: black; }
+
+
+.list-group{   
+  background-color: #333;
+  color: #cdcdcd;
+}
+
+.list-group-item{   
+  background-color: #333;
+  color: #cdcdcd;
+}
+
+.handle { color: #9AAB07 }
+
+.text-label { 
+  color: #8CF5AB;
+  margin-right: 4px;
+}

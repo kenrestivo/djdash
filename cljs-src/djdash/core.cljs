@@ -60,8 +60,8 @@
     (render
       [_]
       (dom/div #js {:id "on_air"
-                    :className (if (live? playing) "live" "hidden")}
-               "ON AIR"))))
+                    :className (if (live? playing) "label label-danger" "hidden")}
+               "LIVE!"))))
 
 (defn playing-view
   [{:keys [playing listeners url timeout]} owner]
@@ -76,13 +76,18 @@
     om/IRenderState
     (render-state
       [_ s]
-      (dom/div nil
-               (om/build on-air-light playing)
-               (dom/div #js {:id "playing"}
-                        (dom/span nil "Now Playing:")
+      (dom/div #js {:className "row"}
+               (dom/div #js {:className "col-md-1"}
+                        (om/build on-air-light playing))
+               (dom/div #js {:id "playing"
+                             :className "col-md-6"}
+                        (dom/span #js {:className "text-label"}
+                                  "Now Playing:")
                         (dom/span  nil playing ))
-               (dom/div #js {:id "listeners"}
-                        (dom/span nil "Listeners:")
+               (dom/div #js {:id "listeners"
+                             :className "col-md-4"}
+                        (dom/span #js {:className "text-label"}
+                                  "Listeners:")
                         (dom/span nil listeners))))))
 
 
@@ -142,14 +147,14 @@
     (render-state
       [_ s]
       (dom/div {:id "chat"}
-               (dom/div #js {:id "users"
-                             :dangerouslySetInnerHTML  #js {:__html users}})
-               (dom/div #js {:id "messages"
-                             :dangerouslySetInnerHTML  #js {:__html (apply str (interpose "\n" messages))}})
+               (dom/div #js {:id "user-section"}
+                        (dom/span #js {:className "text-label"} "Online now:")
+                        (dom/div #js {:id "users"
+                                      :dangerouslySetInnerHTML  #js {:__html users}}))
                (if (empty? user)
                  (dom/button #js {:onClick (fn [_] (login))} "Log In")
                  (dom/div nil
-                          (str user ": ")
+                          (dom/span #js {:className "handle"} (str user ": "))
                           (dom/input
                            #js {:id "chatinput"
                                 :placeholder "Say something here"
@@ -157,8 +162,10 @@
                                 :onKeyDown #(when (= (.-key %) "Enter")
                                               (om/update! curs :message (.. % -target -value))
                                               (ddom/set-value (.. % -target)  "")
-                                              )})
-                          ))))))
+                                              )})))
+               (dom/div #js {:id "messages"
+                             :dangerouslySetInnerHTML  #js {:__html (utils/hack-list-group messages)}})
+               ))))
 
 ;;
 

@@ -18,6 +18,15 @@
       (.send  nil f)))
 
 
+(defn hack-list-group
+  [msgs]
+  (str "<ul class='list-group'>"
+       (->> msgs
+            (map #(str "<li class='list-group-item'>" % "</li>\n"))
+            (apply str))
+       "</ul>"))
+
+
 (defn reverse-split
   [s]
   (->> s
