@@ -58,21 +58,3 @@
 
 
 
-(comment
-
-  (time/show-formatters)
-
-  (time/parse (time/formatters :hour-minute-second) 1001001)
-
-  (coerce/from-long (js/Date.now))
-
-  (time/unparse (time/formatters :hour-minute-second)  (coerce/from-long (js/Date.now)))
-
-  (tcore/local-date )
-
-  (tcore/local-date (coerce/from-long (js/Date.now)))
-
-  (time/unparse (time/formatters :hour-minute-second)   (tcore/local-date (coerce/from-long (js/Date.now))))
-
-
-  )

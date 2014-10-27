@@ -280,20 +280,4 @@
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(comment
 
-  (swap! app-state assoc-in  [:playing :listener-history] [8 2 0 4 12 3 4])
-
-  (d3-date (js/Date.now))
-
-  (swap! app-state assoc-in  [:chat :timeout] 120000)
-  
-  (swap! app-state assoc-in  [:playing :timeout] 1000)
-  
-  (swap! app-state update-in  [:playing :listener-history] conj {:x (js/Date.now) :y (rand 20)})
-
-  (->  @app-state :playing :listener-history)
-
-  (utils/mangle-dygraph (-> @app-state :playing :listener-history))
-  
-  )
