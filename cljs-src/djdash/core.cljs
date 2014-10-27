@@ -136,12 +136,6 @@
                          (assoc-in o [:chat :user] u ))))))
 
 
-(defn stupid-boilerplate
-  [u _]
-  (reify
-    om/IRender
-    (render [this]
-      (dom/li nil u))))
 
 (defn chat-users
   [{:keys [users] :as curs} owner]
