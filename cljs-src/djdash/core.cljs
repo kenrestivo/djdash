@@ -154,7 +154,9 @@
                (if (empty? user)
                  (dom/button #js {:onClick (fn [_] (login))} "Log In")
                  (dom/div nil
-                          (dom/span #js {:className "handle"} (str user ": "))
+                          (dom/label #js {:for "chatinput"
+                                          :className "handle"}
+                                     (str user ": "))
                           (dom/input
                            #js {:id "chatinput"
                                 :placeholder "Say something here"
