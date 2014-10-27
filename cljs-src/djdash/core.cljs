@@ -113,7 +113,7 @@
          (fn [{:keys [messages] :as old}]
            (merge old new {:messages (concat (utils/reverse-split lines)
                                              messages)}))))
-                           
+
 
 
 
@@ -155,10 +155,10 @@
     (render-state
       [_ s]
       (dom/div #js {:id "user-section"}
-               (dom/span #js {:className "text-label"} "In Chat Now:")
                (apply dom/ul #js {:className "list-inline"}
-                      (for [u (utils/hack-users-list users)]
-                        (dom/li #js {:className "label label-default paddy"} u)))))))
+                      (cons (dom/span #js {:className "text-label"} "In Chat Now:")
+                            (for [u (utils/hack-users-list users)]
+                              (dom/li #js {:className "label label-default paddy"} u))))))))
 
 
 
