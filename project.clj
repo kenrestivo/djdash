@@ -21,7 +21,7 @@
 
 
   :source-paths ["clj-src"]
-
+  :plugins [[lein-environ "1.0.0"]]
   :profiles {:dev {:plugins [[lein-cljsbuild "1.0.3"]]
                    :repl-options {:nrepl-middleware [cemerick.piggieback/wrap-cljs-repl]}}}
 
@@ -42,4 +42,11 @@
                                    :source-map  "djdash.js.map"
                                    :preamble ["react/react.min.js"]
                                    :externs ["react/externs/react.js"
-                                             "dyraph-externs.js"]}}]})
+                                             "dyraph-externs.js"]}}]}
+  :env  {:web-server {:port 8080}
+         :timbre-config {:appenders {:spit {:enabled? true
+                                            :fmt-output-opts {:nofonts? true}}
+                                     :standard-out {:enabled? true
+                                                    :fmt-output-opts {:nofonts? true}}}
+                         :shared-appender-config {:spit-filename "/tmp/web.log"}}})
+
