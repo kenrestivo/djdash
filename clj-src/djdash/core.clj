@@ -41,7 +41,7 @@
 
 (defn reset []
   (stop)
-  (trepl/refresh :after 'djdash.core/-main))
+  (trepl/refresh))
 
 (defn reload [e]
   (reset)

@@ -26,7 +26,7 @@
 
 (defn app-routes
   [{:keys [mode playing-url chat-url] :as settings}]
-  (log/info "app routes " settings)
+  (log/debug "app routes " settings)
   (compojure/routes 
    (compojure/GET  "/ch" req (ring-ajax-get-or-ws-handshake req))
    (compojure/POST "/ch" req (ring-ajax-post                req))
@@ -43,7 +43,7 @@
 
 (defn make-handler
   [settings]
-  (log/info "make handler" settings)
+  (log/debug "make handler" settings)
   (-> settings
       app-routes
       handler/site
