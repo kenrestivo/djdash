@@ -1,7 +1,8 @@
 (ns djdash.core
-  (:require-macros [cljs.core.async.macros :refer [go]])
+  (:require-macros [cljs.core.async.macros :refer [go go-loop]])
   (:require [om.core :as om :include-macros true]
             [weasel.repl :as ws-repl]
+            [taoensso.sente  :as sente :refer (cb-success?)]
             [goog.style :as gstyle]
             [goog.storage.mechanism.mechanismfactory]
             [cljs-http.client :as http]
@@ -43,16 +44,27 @@
 
 
 
-;; terrible old js-style action-at-a-distance, but i couldn't get async to work right
-(defn jsonp-playing
-  [uri]
-  (utils/jsonp-wrap uri (fn [res]
-                          (swap! app-state (fn [s]
-                                             (let [{:keys [listeners] :as new-data} (utils/un-json res)]
-                                               (-> s
-                                                   (update-in  [:playing] merge  new-data)
-                                                   (update-in  [:playing :listener-history] conj [(js/Date.now)
-                                                                                                  listeners]))))))))
+(let [{:keys [chsk ch-recv send-fn state]}
+      (sente/make-channel-socket! "/ch" ; Note the same path as before
+                                  {:type :auto ; e/o #{:auto :ajax :ws}
+                                   })]
+  (def chsk       chsk)
+  (def ch-chsk    ch-recv) ; ChannelSocket's receive channel
+  (def chsk-send! send-fn) ; ChannelSocket's send API fn
+  (def chsk-state state)   ; Watchable, read-only atom
+
+
+  
+  ;; terrible old js-style action-at-a-distance, but i couldn't get async to work right
+  (defn jsonp-playing
+    [uri]
+    (utils/jsonp-wrap uri (fn [res]
+                            (swap! app-state (fn [s]
+                                               (let [{:keys [listeners] :as new-data} (utils/un-json res)]
+                                                 (-> s
+                                                     (update-in  [:playing] merge  new-data)
+                                                     (update-in  [:playing :listener-history] conj [(js/Date.now)
+                                                                                                    listeners])))))))))
 
 (defn live?
   [playing]
@@ -145,7 +157,7 @@
       [_ s]
       (dom/div #js {:id "user-section"}
                (apply dom/ul #js {:className "list-inline"}
-                      (cons (dom/span #js {:className "text-label"} "In Chat Now:")
+                      (cons (dom/li #js {:className "text-label"} "In Chat Now:")
                             (for [u (utils/hack-users-list users)]
                               (dom/li #js {:className "label label-default paddy"} u))))))))
 
@@ -237,16 +249,14 @@
     (render-state [_ s]
       (dom/div #js {:id "annoying-placeholder"} ;; annoying               
                (dom/div #js {:className "row"} 
+                        (om/build playing-view playing))
+               (dom/div #js {:className "row"} 
                         (dom/div #js {:className "col-md-2"}
-                                 (dom/div #js {:className "row"} 
-                                          (om/build playing-view playing)
-                                          (om/build listeners-view playing)))
+                                 (om/build listeners-view playing))
                         (dom/div #js {:className "col-md-8"}
                                  (om/build line-chart playing)))
-               
                (dom/div #js {:className "row"}
-                        (dom/div #js {:className "col-md-4"}
-                                 (om/build chat-users chat)))
+                        (om/build chat-users chat))
                (dom/div #js {:className "row"}
                         (dom/div  #js {:className "col-md-8"}
                                   (om/build chat-view chat)))

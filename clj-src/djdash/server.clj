@@ -9,33 +9,38 @@
 
 
 
-(defrecord Server [port db srv]
+(defrecord Server [settings srv]
   component/Lifecycle
   (start
     [this]
-    (log/info "starting webserver on port " port)
+    (log/info "starting webserver " (:settings this))
     (if srv
       this
       ;; TODO: there are many more params to httpsrv/run-server fyi. expose some?
-      (assoc this :srv (-> db
+      (assoc this :srv (-> this
+                           :settings
                            web/make-handler
-                           (kit/run-server  {:port port})))))
+                           (kit/run-server  {:port (-> this :settings :port)})))))
   (stop
     [this]
-    (log/info "stopping webserver on port " port)
+    (log/info "stopping webserver " (:settings this))
     (if-not srv
       this
-      ;; (srv) shuts it down, be sure to return the component either way!
-      (assoc this :srv (srv)))))
+      (do
+        (web/reload-templates)
+        (srv)
+        ;; (srv) shuts it down, be sure to return the component either way!
+        (dissoc this :srv)))))
 
 
 
 
 (defn server
-  [port]
+  [settings]
+  (log/info "server " settings)
   ;; TODO: (components/using [:log db]) , etc
   (component/using
-   (map->Server {:port port})
+   (map->Server {:settings settings})
    [:log]))
 
 

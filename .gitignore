@@ -18,3 +18,4 @@ cache/
 target/
 *-init.clj
 .#*
+resources/public/js/release

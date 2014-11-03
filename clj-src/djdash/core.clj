@@ -16,7 +16,7 @@
   (component/system-map
    ;; :db ;; datomic-stuff!
    :log (dlog/start-log timbre-config)
-   :web-server (srv/server (or (-> web-server :port) 8080))))
+   :web-server (srv/server web-server)))
 
 
 (defn init
@@ -41,8 +41,11 @@
 
 (defn reset []
   (stop)
-  (trepl/refresh :after 'djdash.core/go env/env))
+  (trepl/refresh :after 'djdash.core/-main))
 
+(defn reload [e]
+  (reset)
+  (go e))
 
 ;; TODO: pass params!
 (defn -main
@@ -54,11 +57,12 @@
 
 
 (comment
-  (init)
+  (init env/env)
   (start)
   (stop)
   (reset)
 
+  (reload env/env)
   
   (:timbre-config env/env)
   (go env/env)

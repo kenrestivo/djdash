@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<meta http-equiv="X-UA-Compatible" content="IE=EmulateIE7; IE=EmulateIE9"> 
+      <!--[if IE]><script src="//cdnjs.cloudflare.com/ajax/libs/flot/0.8.2/excanvas.min.js"></script><![endif]-->
+	  <title>DJ Dashboard</title>
+	  <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css"/>
+	  <link rel="stylesheet" type="text/css" href="css/main.css"/>
+	</head>
+	<body>
+
+	  <script type="text/javascript">
+		var playing_url = '{{playing-url}}';
+		var chat_url = '{{chat-url}}';	  
+	  </script>
+
+	  
+      <div id="content"  class="container-fluid"></div>
+
+	  <script type="text/javascript" src="js/dygraph-combined.js"></script>
+	  
+	  {{{js-slug}}}
+	  
+	</body>
+  </html>
