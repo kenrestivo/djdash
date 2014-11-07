@@ -39,19 +39,19 @@
                                 :timeout 30000
                                 :node-name "listener-chart"
                                 :url js/playing_url
-                                :chart-settings {:xaxis {:mode "time"
-                                                         :timezone "browser"
-                                                         :timeformat "%I:%m:%S"}
-                                                 :yaxis {:min 0
-                                                         :color 1}}}
-                      :buffer {:node-name "buffer-chart"
-                               :data [[]] ;; important to have that empty first series
-                               :chart-settings {:xaxis {:mode "time"
+                                :chart-options {:xaxis {:mode "time"
                                                         :timezone "browser"
                                                         :timeformat "%I:%m:%S"}
                                                 :yaxis {:min 0
-                                                        :color 2
-                                                        :tickFormatter buffer-tick}}}
+                                                        :color 1}}}
+                      :buffer {:node-name "buffer-chart"
+                               :data [[]] ;; important to have that empty first series
+                               :chart-options {:xaxis {:mode "time"
+                                                       :timezone "browser"
+                                                       :timeformat "%I:%m:%S"}
+                                               :yaxis {:min 0
+                                                       :color 2
+                                                       :tickFormatter buffer-tick}}}
                       :chat {:url js/chat_url
                              :count 1413798924 ;; could be zero, but who wants to read all that?
                              :user ""
@@ -223,31 +223,29 @@
                              :dangerouslySetInnerHTML  #js {:__html (utils/hack-list-group messages)}})
                ))))
 
-;;
 
 
 
-
-
-(defn buffer-chart
-  [{:keys [node-name chart-settings data]} owner]
+(defn flot
+  [{:keys [node-name chart-options data]} owner]
   (reify
     om/IInitState
     (init-state [_]
-      {:buffer-chart nil})
+      {:flot nil})
     om/IDidMount
     (did-mount [this]
       (let [g (.plot jq  (js/document.getElementById node-name)
                      (clj->js data)
-                     (clj->js chart-settings))]
-        (om/set-state! owner :buffer-chart g)))
+                     (clj->js chart-options))]
+        (om/set-state! owner :flot g)))
     om/IDidUpdate
-    (did-update [this prev-props {:keys [buffer-chart] :as prev-state}]
+    (did-update [this prev-props {:keys [flot] :as prev-state}]
       (when (not= (:data prev-props) data)
         ;;(js/console.log (clj->js data))
-        (.setData buffer-chart (clj->js data))
-        (.setupGrid buffer-chart)
-        (.draw buffer-chart)))
+        (doto flot
+          (.setData (clj->js data))
+          .setupGrid
+          .draw)))
     om/IRender
     (render [this]
       (dom/div #js {:react-key node-name
@@ -268,12 +266,12 @@
                         (dom/div #js {:className "col-md-2"}
                                  (om/build listeners-view playing))
                         (dom/div #js {:className "col-md-8"}
-                                 (om/build buffer-chart playing)))
+                                 (om/build flot playing)))
                (dom/div #js {:className "row"}
                         (dom/div #js {:className "col-md-2"}
                                  "Buffer Status")
                         (dom/div #js {:className "col-md-8"}
-                                 (om/build buffer-chart buffer)))
+                                 (om/build flot buffer)))
                (dom/div #js {:className "row"}
                         (om/build chat-users chat))
                (dom/div #js {:className "row"}
