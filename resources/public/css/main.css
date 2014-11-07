@@ -64,9 +64,10 @@ button { color: black; }
 
 #listener-chart { 
   height: 200px;
+  width: 500px;
 }
 
 #buffer-chart { 
   height: 200px;
-  width: 400px;
+  width: 500px;
 }

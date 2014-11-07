@@ -33,16 +33,22 @@
 
 (def app-state (atom {:playing {:playing (:checking strs)
                                 :listeners (:checking strs)
-                                :listener-history []
+                                :data [[]] ;; important to have that empty first series
                                 :timeout 30000
                                 :node-name "listener-chart"
-                                :url js/playing_url}
+                                :url js/playing_url
+                                :chart-settings {:xaxis {:mode "time"
+                                                         :timezone "browser"
+                                                         :timeformat "%I:%m:%S"}
+                                                 :yaxis {:min 0
+                                                         :color 1}}}
                       :buffer {:node-name "buffer-chart"
                                :data [[]] ;; important to have that empty first series
                                :chart-settings {:xaxis {:mode "time"
                                                         :timezone "browser"
                                                         :timeformat "%I:%m:%S"}
                                                 :yaxis {:min 0
+                                                        :color 2
                                                         :tickFormatter buffer-tick}}}
                       :chat {:url js/chat_url
                              :count 1413798924 ;; could be zero, but who wants to read all that?
@@ -76,8 +82,8 @@
                                                (let [{:keys [listeners] :as new-data} (utils/un-json res)]
                                                  (-> s
                                                      (update-in  [:playing] merge  new-data)
-                                                     (update-in  [:playing :listener-history] conj [(js/Date.now)
-                                                                                                    listeners])))))))))
+                                                     (update-in  [:playing :data 0] conj [(js/Date.now)
+                                                                                          listeners])))))))))
 
 (defn live?
   [playing]
@@ -220,38 +226,6 @@
 
 
 
-(defn line-graph
-  [data node-name]
-  (js/Dygraph.
-   (js/document.getElementById node-name)
-   (utils/mangle-dygraph data)))
-
-
-(defn listener-chart
-  [{:keys [listeners node-name listener-history]} owner]
-  (reify
-    om/IInitState
-    (init-state [_]
-      {:listener-chart nil})
-    om/IDidMount
-    (did-mount [this]
-      (let [g (line-graph listener-history node-name)]
-        (om/set-state! owner :listener-chart g)
-        g))
-    om/IDidUpdate
-    (did-update [this prev-props prev-state]
-      (when (not= prev-props listener-history)
-        ;;(js/console.log (om/get-state owner :listener-chart)) 
-        (.remove (.-firstChild (om/get-node owner node-name)))
-        (line-graph listener-history node-name)))
-    ;; does not work
-    ;; (.updateOptions (om/get-state owner :listener-chart) (clj->js {:file (utils/mangle-dygraph* listener-history)}))))
-    om/IRender
-    (render [this]
-      (dom/div #js {:react-key node-name 
-                    :ref node-name       
-                    :id node-name}))))
-
 
 (defn buffer-chart
   [{:keys [node-name chart-settings data]} owner]
@@ -292,7 +266,7 @@
                         (dom/div #js {:className "col-md-2"}
                                  (om/build listeners-view playing))
                         (dom/div #js {:className "col-md-8"}
-                                 (om/build listener-chart playing)))
+                                 (om/build buffer-chart playing)))
                (dom/div #js {:className "row"}
                         (dom/div #js {:className "col-md-2"}
                                  "Buffer Status")
