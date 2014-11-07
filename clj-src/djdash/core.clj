@@ -3,7 +3,9 @@
             [environ.core :as env]
             [clojure.tools.namespace.repl :as trepl]
             [com.stuartsierra.component :as component]
+            [taoensso.timbre :as log]
             [djdash.server :as srv]
+            [djdash.tail :as tail]
             [clojure.tools.trace :as trace])
   (:gen-class))
 
@@ -12,10 +14,11 @@
 
 
 (defn make-system
-  [{:keys [timbre-config web-server] :as options}]
+  [{:keys [timbre tailer web-server] :as options}]
+  {:pre  [(every? identity (map map? [timbre tailer web-server]))]} ;; TODO: hack! just use schema
   (component/system-map
-   ;; :db ;; datomic-stuff!
-   :log (dlog/start-log timbre-config)
+   :tailer (tail/create-tailer tailer)
+   :log (dlog/start-log timbre)
    :web-server (srv/server web-server)))
 
 
@@ -62,10 +65,11 @@
   (stop)
   (reset)
 
+
+  
   (reload env/env)
   
   (:timbre-config env/env)
   (go env/env)
-  
   
   )

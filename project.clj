@@ -9,6 +9,7 @@
                  [com.taoensso/sente "1.2.0"]
                  [com.stuartsierra/component "0.2.2"]
                  [compojure "1.2.1"]
+                 ;; [ankha "0.1.4"] ;; breaks everything :-(g
                  [ring "1.3.1"]
                  [environ "1.0.0"]
                  [http-kit "2.1.19"]
@@ -25,7 +26,15 @@
   :plugins [[lein-environ "1.0.0"]]
   :profiles {:dev {:plugins [[lein-cljsbuild "1.0.3"]]
                    :repl-options {:nrepl-middleware [cemerick.piggieback/wrap-cljs-repl]}
-                   :env {:web-server {:mode :dev
+                   :env {:timbre {:appenders {:spit {:enabled? true
+                                                     :fmt-output-opts {:nofonts? true}}
+                                              :standard-out {:enabled? false}}
+                                  :shared-appender-config {:spit-filename "/mnt/sdcard/tmp/web.log"}}
+                         :tailer {:fpath "/mnt/sdcard/tmp/foo"
+                                  :bufsiz 10000
+                                  :file-check-delay 2000
+                                  :chunk-delay 10000}
+                         :web-server {:mode :dev
                                       :playing-url "http://lamp/playing/playing.php"
                                       :chat-url "http://lamp/spaz/radio/chatster/doUpdate.php"}}}
              
@@ -51,14 +60,20 @@
                                    :source-map  "resources/public/js/djdash.js.map"
                                    :preamble ["react/react.min.js"]
                                    :externs ["react/externs/react.js"
+                                             "flot.js"
+                                             "jquery-1.9.js"
                                              "dyraph-externs.js"]}}]}
-  :env  {:web-server {:port 8080
+  :env  {:tailer {:fpath "/tmp/master-buffer.log"
+                  :bufsiz 10000
+                  :file-check-delay 1000
+                  :chunk-delay 10000}
+         :web-server {:port 8080
                       :playing-url "http://spazradio.bamfic.com/playing.php"
                       :chat-url "http://spaz.org/radio/chatster/doUpdate.php"
                       :mode :release}
-         :timbre-config {:appenders {:spit {:enabled? true
-                                            :fmt-output-opts {:nofonts? true}}
-                                     :standard-out {:enabled? true
-                                                    :fmt-output-opts {:nofonts? true}}}
-                         :shared-appender-config {:spit-filename "/tmp/web.log"}}})
+         :timbre {:appenders {:spit {:enabled? true
+                                     :fmt-output-opts {:nofonts? true}}
+                              :standard-out {:enabled? true
+                                             :fmt-output-opts {:nofonts? true}}}
+                  :shared-appender-config {:spit-filename "/tmp/web.log"}}})
 

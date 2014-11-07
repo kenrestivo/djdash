@@ -5,6 +5,7 @@
             [taoensso.sente  :as sente :refer (cb-success?)]
             [goog.style :as gstyle]
             [goog.storage.mechanism.mechanismfactory]
+            ;; [ankha.core :as ankha] ;; breaks everything :-(
             [cljs-http.client :as http]
             [djdash.utils :as utils]
             [om.dom :as dom]
@@ -20,17 +21,29 @@
   (enable-console-print!)
   )
 
-(def listener-node-name "listener-chart")
-
 (def storage (goog.storage.mechanism.mechanismfactory.create))
 
 (def strs {:checking "Checking..."})
+
+
+(defn buffer-tick
+  [n axis]
+  (str (-> n int (/ 10000)) "k"))
+
 
 (def app-state (atom {:playing {:playing (:checking strs)
                                 :listeners (:checking strs)
                                 :listener-history []
                                 :timeout 30000
+                                :node-name "listener-chart"
                                 :url js/playing_url}
+                      :buffer {:node-name "buffer-chart"
+                               :data [[]] ;; important to have that empty first series
+                               :chart-settings {:xaxis {:mode "time"
+                                                        :timezone "browser"
+                                                        :timeformat "%I:%m:%S"}
+                                                :yaxis {:min 0
+                                                        :tickFormatter buffer-tick}}}
                       :chat {:url js/chat_url
                              :count 1413798924 ;; could be zero, but who wants to read all that?
                              :user ""
@@ -208,42 +221,67 @@
 
 
 (defn line-graph
-  [data]
+  [data node-name]
   (js/Dygraph.
-   (js/document.getElementById listener-node-name)
+   (js/document.getElementById node-name)
    (utils/mangle-dygraph data)))
 
 
-(defn line-chart
-  [{:keys [listeners listener-history]} owner]
+(defn listener-chart
+  [{:keys [listeners node-name listener-history]} owner]
   (reify
     om/IInitState
     (init-state [_]
       {:listener-chart nil})
     om/IDidMount
     (did-mount [this]
-      (let [g (line-graph listener-history)]
+      (let [g (line-graph listener-history node-name)]
         (om/set-state! owner :listener-chart g)
         g))
     om/IDidUpdate
     (did-update [this prev-props prev-state]
       (when (not= prev-props listener-history)
         ;;(js/console.log (om/get-state owner :listener-chart)) 
-        (.remove (.-firstChild (om/get-node owner listener-node-name)))
-        (line-graph listener-history)))
+        (.remove (.-firstChild (om/get-node owner node-name)))
+        (line-graph listener-history node-name)))
     ;; does not work
     ;; (.updateOptions (om/get-state owner :listener-chart) (clj->js {:file (utils/mangle-dygraph* listener-history)}))))
     om/IRender
     (render [this]
-      (dom/div #js {:react-key listener-node-name 
-                    :ref listener-node-name       
-                    :id listener-node-name}))))
+      (dom/div #js {:react-key node-name 
+                    :ref node-name       
+                    :id node-name}))))
 
+
+(defn buffer-chart
+  [{:keys [node-name chart-settings data]} owner]
+  (reify
+    om/IInitState
+    (init-state [_]
+      {:buffer-chart nil})
+    om/IDidMount
+    (did-mount [this]
+      (let [g (js/jQuery.plot (js/document.getElementById node-name)
+                              (clj->js data)
+                              (clj->js chart-settings))]
+        (om/set-state! owner :buffer-chart g)))
+    om/IDidUpdate
+    (did-update [this prev-props {:keys [buffer-chart] :as prev-state}]
+      (when (not= (:data prev-props) data)
+        ;;(js/console.log (clj->js data))
+        (.setData buffer-chart (clj->js data))
+        (.setupGrid buffer-chart)
+        (.draw buffer-chart)))
+    om/IRender
+    (render [this]
+      (dom/div #js {:react-key node-name
+                    :ref node-name       
+                    :id node-name}))))
 
 
 
 (defn main-view
-  [{:keys [playing chat]} owner]
+  [{:keys [playing buffer chat]} owner]
   (reify
     om/IRenderState
     (render-state [_ s]
@@ -254,7 +292,12 @@
                         (dom/div #js {:className "col-md-2"}
                                  (om/build listeners-view playing))
                         (dom/div #js {:className "col-md-8"}
-                                 (om/build line-chart playing)))
+                                 (om/build listener-chart playing)))
+               (dom/div #js {:className "row"}
+                        (dom/div #js {:className "col-md-2"}
+                                 "Buffer Status")
+                        (dom/div #js {:className "col-md-8"}
+                                 (om/build buffer-chart buffer)))
                (dom/div #js {:className "row"}
                         (om/build chat-users chat))
                (dom/div #js {:className "row"}
@@ -270,13 +313,14 @@
  {:target (. js/document (getElementById "content"))})
 
 
-
 (comment
-  ;; TODO: compile only in dev mode?
-  (om/root
-   ankha/inspector
-   app-state
-   {:target (js/document.getElementById "inspect")})
+  ;; breaks everything :-(
+  ;; a hacky conditional run, if not compile
+  (when-let [target (js/document.getElementById "inspect")]
+    (om/root
+     ankha/inspector
+     app-state
+     {:target target}))
   )
 
 
@@ -289,6 +333,25 @@
   (ws-repl/connect "ws://localhost:9001" :verbose false))
 
 
+(defn format-buffer
+  [{:keys [min max avg date]}]
+  [date min])
+
+(defn dispatch-message
+  [[id msg]]
+  (when (= :djdash/buffer id)
+    (swap! app-state update-in [:buffer :data 0] conj  (format-buffer msg))))
+
+
+(defn dispatch-event
+  [{[ev-type something] :event}]
+  (when (= :chsk/recv ev-type)
+    (dispatch-message something)))
+
+
+
+
+(def foo (sente/start-chsk-router! ch-chsk dispatch-event))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -305,5 +368,5 @@
   (vec '(1 2 3))
 
   (js/console.log (clj->js {:file  (-> @app-state :playing :listener-history utils/mangle-dygraph*)}))
-  
   )
+

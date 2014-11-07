@@ -13,19 +13,12 @@
 ;; TODO: wrap exceptions that logs them? or are they logged anyway with timbre?
 
 
-(let [{:keys [ch-recv send-fn ajax-post-fn ajax-get-or-ws-handshake-fn
-              connected-uids]}
-      (sente/make-channel-socket! {})] ;; supply userid fn here, or just use :uid in ring
-  (def ring-ajax-post                ajax-post-fn)
-  (def ring-ajax-get-or-ws-handshake ajax-get-or-ws-handshake-fn)
-  (def ch-chsk                       ch-recv) ; ChannelSocket's receive channel
-  (def chsk-send!                    send-fn) ; ChannelSocket's send API fn
-  (def connected-uids                connected-uids) ; Watchable, read-only atom
-  )
+
 
 
 (defn app-routes
-  [{:keys [mode playing-url chat-url] :as settings}]
+  [{:keys [mode playing-url chat-url] :as settings}
+   {:keys [ring-ajax-get-or-ws-handshake ring-ajax-post] :as sente}]
   (log/debug "app routes " settings)
   (compojure/routes 
    (compojure/GET  "/ch" req (ring-ajax-get-or-ws-handshake req))
@@ -42,10 +35,10 @@
 
 
 (defn make-handler
-  [settings]
+  [settings sente]
   (log/debug "make handler" settings)
   (-> settings
-      app-routes
+      (app-routes sente)
       handler/site
       (res/wrap-resource  "public") ;; for css and js
       file-info/wrap-file-info ;; for correct mime types
@@ -61,5 +54,8 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (comment
+
+
+  
   
   )
