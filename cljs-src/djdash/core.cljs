@@ -30,7 +30,7 @@
 
 (defn buffer-tick
   [n axis]
-  (str (-> n int (/ 10000)) "k"))
+  (str (-> n int (/ 1000)) "k"))
 
 
 (def app-state (atom {:playing {:playing (:checking strs)
