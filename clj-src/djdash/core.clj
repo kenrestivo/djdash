@@ -34,7 +34,7 @@
 
 (defn stop
   []
-  (swap! system #(if % (component/stop %) nil)))
+  (swap! system #(when % (component/stop %) nil)))
 
 
 (defn go
@@ -68,8 +68,14 @@
 
   
   (reload env/env)
+
+  (reload (assoc-in env/env [:web-server :mode] :release))
+
+  (init (assoc-in env/env [:web-server :mode] :release))
+  (start)
   
-  (:timbre-config env/env)
+  (keys env/env)
+  (:timbre env/env)
   (go env/env)
   
   )

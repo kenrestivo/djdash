@@ -21,6 +21,8 @@
   (enable-console-print!)
   )
 
+(def ^:export jq js/jQuery)
+
 (def storage (goog.storage.mechanism.mechanismfactory.create))
 
 (def strs {:checking "Checking..."})
@@ -235,9 +237,9 @@
       {:buffer-chart nil})
     om/IDidMount
     (did-mount [this]
-      (let [g (js/jQuery.plot (js/document.getElementById node-name)
-                              (clj->js data)
-                              (clj->js chart-settings))]
+      (let [g (.plot jq  (js/document.getElementById node-name)
+                     (clj->js data)
+                     (clj->js chart-settings))]
         (om/set-state! owner :buffer-chart g)))
     om/IDidUpdate
     (did-update [this prev-props {:keys [buffer-chart] :as prev-state}]

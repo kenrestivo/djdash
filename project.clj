@@ -57,12 +57,14 @@
                                    ;;:output-wrapper true ;; don't know why this would be necessary?
                                    :optimizations :advanced
                                    :pretty-print false
+                                   :closure-warnings {:externs-validation :off
+                                                      :non-standard-jsdoc :off}
                                    :source-map  "resources/public/js/djdash.js.map"
                                    :preamble ["react/react.min.js"]
                                    :externs ["react/externs/react.js"
-                                             "flot.js"
-                                             "jquery-1.9.js"
-                                             "dyraph-externs.js"]}}]}
+                                             "resources/public/js/jquery.min.js"
+                                             "resources/public/js/jquery.flot.time.min.js"
+                                             "resources/public/js/jquery.flot.min.js"]}}]}
   :env  {:tailer {:fpath "/tmp/master-buffer.log"
                   :bufsiz 10000
                   :file-check-delay 1000
