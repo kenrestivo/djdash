@@ -41,14 +41,18 @@
                                 :url js/playing_url
                                 :chart-options {:xaxis {:mode "time"
                                                         :timezone "browser"
-                                                        :timeformat "%I:%m:%S"}
+                                                        :ticks 6
+                                                        :minTickSize [2, "minute"]
+                                                        :timeformat "%I:%M%p"}
                                                 :yaxis {:min 0
                                                         :color 1}}}
                       :buffer {:node-name "buffer-chart"
                                :data [[]] ;; important to have that empty first series
                                :chart-options {:xaxis {:mode "time"
+                                                       :ticks 6
+                                                        :minTickSize [2, "minute"]
                                                        :timezone "browser"
-                                                       :timeformat "%I:%m:%S"}
+                                                       :timeformat "%I:%M%p"}
                                                :yaxis {:min 0
                                                        :color 2
                                                        :tickFormatter buffer-tick}}}
