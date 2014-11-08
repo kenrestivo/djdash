@@ -50,7 +50,7 @@
                                :data [[]] ;; important to have that empty first series
                                :chart-options {:xaxis {:mode "time"
                                                        :ticks 6
-                                                        :minTickSize [2, "minute"]
+                                                       :minTickSize [2, "minute"]
                                                        :timezone "browser"
                                                        :timeformat "%I:%M%p"}
                                                :yaxis {:min 0
