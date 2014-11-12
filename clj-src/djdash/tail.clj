@@ -49,14 +49,14 @@
 (defn process-bufs
   [ls]
   (let [bs (strs->bufs ls)
-        maxn (apply max bs)
-        c (count bs)]
+        c (count bs)
+        maxn (if (< 0 c) (apply max bs) 0)]
     {:max maxn
      :date (stamp)
      :avg (if (< 0 c)
             (int (/ (apply + bs) c))
             0)
-     :min (apply min bs)}))
+     :min (if (< 0 c) (apply min bs) 0)}))
 
 (defn push
   [sente all]
