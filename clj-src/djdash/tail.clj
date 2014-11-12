@@ -79,6 +79,7 @@
                 ;; force rising edge
                 (push sente prev))
               (when (not (empty? all))
+                ;; the actual data, if present
                 (push sente all))
               (when (and (empty? all) (not (empty? prev)))
                 ;; force falling edge
