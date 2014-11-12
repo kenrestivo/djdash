@@ -48,25 +48,44 @@
 
 (defn process-bufs
   [ls]
-  (let [bs (strs->bufs ls)]
-    {:max (apply max bs)
+  (let [bs (strs->bufs ls)
+        maxn (apply max bs)
+        c (count bs)]
+    {:max maxn
      :date (stamp)
-     :avg (int (/ (apply + bs) (count bs)))
+     :avg (if (< 0 c)
+            (int (/ (apply + bs) c))
+            0)
      :min (apply min bs)}))
+
+(defn push
+  [sente all]
+  (try
+    (let [p (process-bufs all)]
+      (log/debug " c> " p)
+      (utils/broadcast* sente :djdash/buffer p))
+    (catch Exception e
+      (log/error e))))
 
 
 (defn start-chunker
   [queue sente chunk-delay]
-  (future (while true
-            (try
-              (let [all (get-all queue)]
-                (when (not (empty? all))
-                  (let [p (process-bufs all)]
-                    (log/debug " c> " p)
-                    (utils/broadcast* sente :djdash/buffer p))))
-              (catch Exception e
-                (log/error e)))
-            (Thread/sleep chunk-delay))))
+  (future (loop [prev nil]
+            (let [all (try
+                        (get-all queue)
+                        (catch Exception e
+                          (log/error e)))]
+              (when (and (empty? prev) (not (empty? all)))
+                ;; force rising edge
+                (push sente prev))
+              (when (not (empty? all))
+                (push sente all))
+              (when (and (empty? all) (not (empty? prev)))
+                ;; force falling edge
+                (push sente all))
+              (Thread/sleep chunk-delay)
+              (recur all)))))
+
 
 (defn stop
   [{:keys [tailer-thread queue chunk-thread] :as old}]
