@@ -184,7 +184,8 @@
                (apply dom/ul #js {:className "list-inline"}
                       (cons (dom/li #js {:className "text-label"} "In Chat Now:")
                             (for [u (utils/hack-users-list users)]
-                              (dom/li #js {:className "label label-default paddy"} u))))))))
+                              (dom/li #js {:className "label label-default paddy"
+                                           :dangerouslySetInnerHTML  #js {:__html u}}))))))))
 
 
 
