@@ -45,6 +45,8 @@
                                                         :minTickSize [2, "minute"]
                                                         :timeformat "%I:%M%p"}
                                                 :yaxis {:min 0
+		                                                :minTickSize 1
+                                                        :tickFormatter (comp str int)
                                                         :color 1}}}
                       :buffer {:node-name "buffer-chart"
                                :data [[]] ;; important to have that empty first series
