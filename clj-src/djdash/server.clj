@@ -50,8 +50,8 @@
         ((:srv this))
         ;; (srv) shuts it down, be sure to return the component either way!
         (-> this
-            (dissoc  :srv)
-            (dissoc :sente))))))
+            (assoc  :srv nil)
+            (assoc :sente nil))))))
 
 
 

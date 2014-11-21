@@ -120,7 +120,7 @@
       this 
       (do
         (stop tailer)
-        (dissoc this :tailer)))))
+        (assoc this :tailer nil)))))
 
 
 
