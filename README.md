@@ -11,7 +11,8 @@ When the buffer goes to zero, the DJ's transmission has dropped out and the list
 
 ```shell
 lein cljsbuild once
- rm -rf target/trampolines/; lein with-profile user,repl trampoline repl :headless < /dev/null &
+rm -rf target/trampolines/
+lein with-profile user,repl trampoline repl :headless < /dev/null &
 ```
 
 ## Why???
