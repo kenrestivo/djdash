@@ -28,6 +28,14 @@
 (def strs {:checking "Checking..."})
 
 
+(defn min-chat-stamp
+  []
+    (-> (js/Date.)
+      .getTime
+      (/ 1000)
+      (- (* 60 60 24 30))
+      Math/floor))
+
 (defn buffer-tick
   [n axis]
   (str (-> n int (/ 1000)) "k"))
@@ -59,7 +67,7 @@
                                                        :color 2
                                                        :tickFormatter buffer-tick}}}
                       :chat {:url js/chat_url
-                             :count 1413798924 ;; could be zero, but who wants to read all that?
+                             :count (min-chat-stamp)
                              :user ""
                              :users (:checking strs)
                              :id (int (rand 999999))
