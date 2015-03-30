@@ -6,6 +6,9 @@ A Dashboard for a heavily-customized online Liquidsoap/Airtime radio station, [S
 
 When the buffer goes to zero, the DJ's transmission has dropped out and the listeners will hear several seconds of the jukebox instead. Good buffer status is essential to a good streaming transmission. Ideally it is a nice straight line. If the buffer is choppy or low, or has dropouts, the DJ needs to increase their available bandwidth, and/or reduce load on the computer doing the streaming.
 
+Most of the settings are in the project.clj using environ. They can be overridden using environ too. Eventually I'll move those settings to a separate conf file.
+
+To use the buffer monitoring, you have to enable the "logfile" directive on the liquidsoap harbor, and point it to the same file that (-> :tailer :fpath) is in the env.
 
 ## Building
 
