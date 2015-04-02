@@ -28,34 +28,14 @@
 (def strs {:checking "Checking..."})
 
 
-(defn min-chat-stamp
-  []
-    (-> (js/Date.)
-      .getTime
-      (/ 1000)
-      (- (* 60 60 24 30))
-      Math/floor))
+
 
 (defn buffer-tick
   [n axis]
   (str (-> n int (/ 1000)) "k"))
 
 
-(def app-state (atom {:playing {:playing (:checking strs)
-                                :listeners (:checking strs)
-                                :data [[]] ;; important to have that empty first series
-                                :timeout 30000
-                                :node-name "listener-chart"
-                                :url js/playing_url
-                                :chart-options {:xaxis {:mode "time"
-                                                        :timezone "browser"
-                                                        :ticks 6
-                                                        :minTickSize [2, "minute"]
-                                                        :timeformat "%I:%M%p"}
-                                                :yaxis {:min 0
-		                                                :minTickSize 1
-                                                        :tickFormatter (comp str int)
-                                                        :color 1}}}
+(def app-state (atom {
                       :buffer {:node-name "buffer-chart"
                                :data [[]] ;; important to have that empty first series
                                :chart-options {:xaxis {:mode "time"
@@ -66,16 +46,7 @@
                                                :yaxis {:min 0
                                                        :color 2
                                                        :tickFormatter buffer-tick}}}
-                      :chat {:url js/chat_url
-                             :count (min-chat-stamp)
-                             :user ""
-                             :users (:checking strs)
-                             :id (int (rand 999999))
-                             :errors ""
-                             :message ""
-                             :timeout 2000
-                             :messages []
-                             :lines ""}}))
+                      }))
 
 
 
@@ -86,157 +57,12 @@
   (def chsk       chsk)
   (def ch-chsk    ch-recv) ; ChannelSocket's receive channel
   (def chsk-send! send-fn) ; ChannelSocket's send API fn
-  (def chsk-state state)   ; Watchable, read-only atom
-
-
-  
-  ;; terrible old js-style action-at-a-distance, but i couldn't get async to work right
-  (defn jsonp-playing
-    [uri]
-    (utils/jsonp-wrap uri (fn [res]
-                            (swap! app-state (fn [s]
-                                               (let [{:keys [listeners] :as new-data} (utils/un-json res)]
-                                                 (-> s
-                                                     (update-in  [:playing] merge  new-data)
-                                                     (update-in  [:playing :data 0] conj [(js/Date.now)
-                                                                                          listeners])))))))))
-
-(defn live?
-  [playing]
-  (->> playing
-       (re-find  #"^\[LIVE\!\].*?")
-       boolean))
-
-(defn on-air-div
-  [playing]
-  (dom/div #js {:id "on_air"
-                :className (if (live? playing) "label label-danger paddy" "hidden")}
-           "LIVE!"))
-
-
-(defn listeners-view
-  [{:keys [listeners]} owner]
-  (reify
-    om/IRenderState
-    (render-state
-      [_ s]
-      (dom/div #js {:id "listeners"}
-               (dom/span #js {:className "text-label"}
-                         "Listeners:")
-               (dom/span nil listeners)))))
-
-
-
-(defn playing-view
-  [{:keys [playing listeners url timeout]} owner]
-  (reify
-    om/IWillMount
-    (will-mount
-      [_]
-      (let [c (chan)]
-        (go (while true
-              (jsonp-playing url)
-              (<! (async/timeout timeout))))))
-    om/IRenderState
-    (render-state
-      [_ s]
-      (dom/div #js {:id "playing"}
-               (dom/span #js {:className "text-label"}
-                         "Now Playing:")
-               (dom/span  nil
-                          (on-air-div playing)
-                          playing )))))
-
-
-
-(defn process-chat
-  [{:keys [lines users] :as new}]
-  (swap! app-state update-in [:chat]
-         (fn [{:keys [messages] :as old}]
-           (merge old new {:messages (concat (utils/reverse-split lines)
-                                             messages)}))))
+  (def chsk-state state))   ; Watchable, read-only atom
 
 
 
 
-(defn update-chat!
-  [msg]
-  (let [{{:keys [url user count id message]}  :chat} @app-state
-        u (str url "?" (http/generate-query-string {:user user
-                                                    :msg message
-                                                    :lineNo count
-                                                    :chatId id}))]
-    (swap! app-state assoc-in [:chat :message] "")
-    (utils/jsonp-wrap  u
-                       (if (empty? msg)
-                         ;; hack to avoid double-messages
-                         #(-> % utils/un-json process-chat)
-                         identity))))
 
-
-(defn login
-  []
-  (let [u (js/prompt "who are you, dj person?")]
-    (when (not (empty? u))
-      (swap! app-state (fn [o]
-                         (.set storage :user u)
-                         (assoc-in o [:chat :user] u ))))))
-
-
-
-(defn chat-users
-  [{:keys [users] :as curs} owner]
-  (reify
-    om/IRenderState
-    (render-state
-      [_ s]
-      (dom/div #js {:id "user-section"}
-               (apply dom/ul #js {:className "list-inline"}
-                      (cons (dom/li #js {:className "text-label"} "In Chat Now:")
-                            (for [u (utils/hack-users-list users)]
-                              (dom/li #js {:className "label label-default paddy"
-                                           :dangerouslySetInnerHTML  #js {:__html u}}))))))))
-
-
-
-(defn chat-view
-  [{:keys [users messages user url errors count id timeout] :as curs} owner]
-  (reify
-    om/IWillMount
-    (will-mount
-      [_]
-      (let [c (chan)]
-        (go (while true
-              ;; TODO: the message to send!
-              (update-chat! "")
-              (<! (async/timeout timeout))))))
-    om/IDidMount
-    (did-mount
-      [_]
-      (swap! app-state assoc-in [:chat :user]  (.get storage :user))
-      (when (-> @app-state :chat :user empty?)
-        (login)))
-    om/IRenderState
-    (render-state
-      [_ s]
-      (dom/div {:id "chat"}
-               (if (empty? user)
-                 (dom/button #js {:onClick (fn [_] (login))} "Log In")
-                 (dom/div nil
-                          (dom/label #js {:htmlFor "chatinput"
-                                          :className "handle"}
-                                     (str user ": "))
-                          (dom/input
-                           #js {:id "chatinput"
-                                :placeholder "Say something here"
-                                ;;:on-change #(js/console.log %)
-                                :onKeyDown #(when (= (.-key %) "Enter")
-                                              (om/update! curs :message (.. % -target -value))
-                                              (ddom/set-value (.. % -target)  "")
-                                              )})))
-               (dom/div #js {:id "messages"
-                             :dangerouslySetInnerHTML  #js {:__html (utils/hack-list-group messages)}})
-               ))))
 
 
 
@@ -270,28 +96,18 @@
 
 
 (defn main-view
-  [{:keys [playing buffer chat]} owner]
+  [{:keys [buffer]} owner]
   (reify
     om/IRenderState
     (render-state [_ s]
       (dom/div #js {:id "annoying-placeholder"} ;; annoying               
-               (dom/div #js {:className "row"} 
-                        (om/build playing-view playing))
-               (dom/div #js {:className "row"} 
-                        (dom/div #js {:className "col-md-2"}
-                                 (om/build listeners-view playing))
-                        (dom/div #js {:className "col-md-8"}
-                                 (om/build flot playing)))
+               
                (dom/div #js {:className "row"}
                         (dom/div #js {:className "col-md-2"}
                                  "Buffer Status")
                         (dom/div #js {:className "col-md-8"}
                                  (om/build flot buffer)))
-               (dom/div #js {:className "row"}
-                        (om/build chat-users chat))
-               (dom/div #js {:className "row"}
-                        (dom/div  #js {:className "col-md-8"}
-                                  (om/build chat-view chat)))
+               
                ))))
 
 
@@ -350,7 +166,6 @@
   (do
     (swap! app-state assoc-in  [:chat :timeout] 120000)
     (swap! app-state assoc-in  [:playing :timeout] 1000))
-
   
   (-> @app-state :playing :listener-history utils/mangle-dygraph*)
 
