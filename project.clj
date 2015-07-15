@@ -24,6 +24,7 @@
 
   :source-paths ["clj-src"]
   :plugins [[lein-environ "1.0.0"]]
+	:main djdash.core
   :profiles {:dev {:plugins [[lein-cljsbuild "1.0.3"]]
                    :repl-options {:nrepl-middleware [cemerick.piggieback/wrap-cljs-repl]}
                    :env {:timbre {:appenders {:spit {:enabled? true
