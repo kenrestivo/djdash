@@ -117,17 +117,10 @@
                                    (org.joda.time.DateTime. start_timestamp))]])]))
 
 
-;; XXX there is a bug here in last-started, if the program suspends and resumes,
-;; the last-started is stale, needs to be force-refreshed, by forcing it nil
-;; should do that on the android app.
-;; ugly but it works
-;; another limitation of this, is taht it does not catch shows added in between
-;; now and the next previosuly-scheduled show!
-;; rare, so not too worrried about it.
 (defn update-schedule-fn
   "Takes a URL and a current #inst, and returns a function
    which takes the old schedule atom and updates the future/current and last-started,
-   and goes out and fetches a new schedule if a new show has started since last check."
+   and goes out and fetches a new schedule."
   [^java.lang.String url ^java.util.Date d]
   (fn [{:keys [last-started current future]}]
     (let [{:keys [current future] :as new-sched} (->> (concat current future) ;; rejoining for resplitting
