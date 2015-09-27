@@ -6,6 +6,7 @@
             [taoensso.timbre :as log]
             [djdash.server :as srv]
             [djdash.tail :as tail]
+            [djdash.schedule :as schedule]
             [clojure.tools.trace :as trace])
   (:gen-class))
 
@@ -14,10 +15,11 @@
 
 
 (defn make-system
-  [{:keys [timbre tailer web-server] :as options}]
+  [{:keys [timbre tailer web-server scheduler] :as options}]
   {:pre  [(every? identity (map map? [timbre tailer web-server]))]} ;; TODO: hack! just use schema
   (component/system-map
    :tailer (tail/create-tailer tailer)
+   :scheduler (schedule/create-scheduler scheduler)
    :log (dlog/start-log timbre)
    :web-server (srv/server web-server)))
 
@@ -54,7 +56,7 @@
 (defn -main
   []
   (future (go env/env))
-  )
+  @(promise))
 
 
 
@@ -79,3 +81,5 @@
   (go env/env)
   
   )
+
+

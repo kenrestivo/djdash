@@ -242,6 +242,9 @@
 
 
 (defn flot
+  "node-name is the name for the DOM node of the flot chart
+   chart-options is a clojure nested map of options for flot (see flot docs)
+   data is the data in flot's format (nested vectors or vector of maps)"
   [{:keys [node-name chart-options data]} owner]
   (reify
     om/IInitState

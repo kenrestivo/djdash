@@ -90,11 +90,12 @@
 
 (defn stop
   [{:keys [tailer-thread queue chunk-thread] :as old}]
-  (when (not (nil? chunk-thread)) (.stop tailer-thread))
-  (when (not (nil? tailer-thread)) (.stop tailer-thread)))
+  (when (not (nil? chunk-thread)) (future-cancel tailer-thread))
+  (some-> tailer-thread .stop))
 
 (defn start
   [{:keys [fpath bufsiz file-check-delay chunk-delay] :as settings} sente]
+  ;; TODO: could core.async channel instead
   (let [queue (ConcurrentLinkedQueue.)]
     {:queue queue
      :chunk-thread (start-chunker queue sente chunk-delay)
