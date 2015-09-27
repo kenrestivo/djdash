@@ -162,7 +162,7 @@
 
 (defn fake-jsonp
   [s]
-  (str "update_meta(\n" s "\n);"))
+  (str "update_schedule_meta(\n" s "\n);"))
 
 
 
