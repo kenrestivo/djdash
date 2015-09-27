@@ -160,6 +160,11 @@
       (log/error e))))
 
 
+(defn fake-jsonp
+  [s]
+  (str "(update_meta(\n" s "\n);"))
+
+
 
 (defn watch-schedule-fn
   [sente ical-file next-up-file]
@@ -179,6 +184,7 @@
           (try 
             (->> new-future
                  json/encode
+                 fake-jsonp
                  (spit next-up-file))
             (catch Exception e
               (log/error e)))
