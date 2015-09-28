@@ -221,7 +221,7 @@
     (if-not scheduler-internal
       this
       (do
-        (log/trace "branch hit, stopping" this)
+        (log/debug "branch hit, stopping" this)
         (stop-schedule this)
         (assoc this :scheduler-internal nil)))))
 

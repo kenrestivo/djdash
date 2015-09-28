@@ -1,5 +1,6 @@
 (ns djdash.log
   (:require [taoensso.timbre :as log]
+            [taoensso.timbre.appenders.core :as appenders]
             [com.stuartsierra.component :as component]
             [clojure.tools.trace :as trace]))
 
@@ -9,14 +10,20 @@
   component/Lifecycle
   (start
     [this]
-    (log/merge-config! config)
     (if altered
       this
-      (do 
+      (let [{:keys [spit-filename]} config]
+        (println "starting logging")
+        (log/merge-config! (merge config
+                                  {:output-fn (partial log/default-output-fn {:stacktrace-fonts {}})
+                                   :appenders {:println (appenders/println-appender {:enabled? false})
+                                               :spit (appenders/spit-appender
+                                                      {:fname spit-filename})}}))
         ;; TODO: only in dev envs
         (alter-var-root #'clojure.tools.trace/tracer (fn [_]
                                                        (fn [name value]
                                                          (log/debug name value))))
+        (log/info "logging started" config)
         (assoc this :altered true))))
   (stop [this]
     this))

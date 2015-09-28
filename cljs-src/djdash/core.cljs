@@ -16,6 +16,7 @@
            [goog Uri]))
 
 
+
 (comment
   ;; don't want this with nrepl, i guess?
   (enable-console-print!)
@@ -30,7 +31,7 @@
 
 (defn min-chat-stamp
   []
-    (-> (js/Date.)
+  (-> (js/Date.)
       .getTime
       (/ 1000)
       (- (* 60 60 24 30))
@@ -53,7 +54,7 @@
                                                         :minTickSize [2, "minute"]
                                                         :timeformat "%I:%M%p"}
                                                 :yaxis {:min 0
-		                                                :minTickSize 1
+                                                        :minTickSize 1
                                                         :tickFormatter (comp str int)
                                                         :color 1}}}
                       :buffer {:node-name "buffer-chart"
@@ -298,31 +299,21 @@
                ))))
 
 
+;; TODO: auto-reconnect
+;; TODO: conditionally compile this only if in dev mode
+(defn replconnect
+  []
+  (ws-repl/connect "ws://localhost:9001"))
 
-(om/root
+
+(om.core/root
  main-view
  app-state
  {:target (. js/document (getElementById "content"))})
 
 
-(comment
-  ;; breaks everything :-(
-  ;; a hacky conditional run, if not compile
-  (when-let [target (js/document.getElementById "inspect")]
-    (om/root
-     ankha/inspector
-     app-state
-     {:target target}))
-  )
 
 
-
-
-;; TODO: auto-reconnect
-;; TODO: conditionally compile this only if in dev mode
-(defn ^:export connect
-  []
-  (ws-repl/connect "ws://localhost:9001" :verbose false))
 
 
 (defn format-buffer
@@ -345,6 +336,16 @@
 
 (def foo (sente/start-chsk-router! ch-chsk dispatch-event))
 
+
+(comment
+  ;; breaks everything :-(
+  ;; a hacky conditional run, if not compile
+  (when-let [target (js/document.getElementById "inspect")]
+    (om/root
+     ankha/inspector
+     app-state
+     {:target target}))
+  )
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 

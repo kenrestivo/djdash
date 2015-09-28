@@ -1,4 +1,5 @@
 *.class
+wtf.log
 *.jar
 *.map
 *~
@@ -12,6 +13,8 @@
 djdash-min.js
 djdash.js
 out/
+dev/
+release/
 pom.xml
 pom.xml.asc
 cache/
