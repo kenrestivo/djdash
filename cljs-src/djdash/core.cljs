@@ -37,7 +37,7 @@
 (defn format-time
   [d]
   (cljs-time.format/unparse
-   (cljs-time.format/formatter "h:mmp")
+   (cljs-time.format/formatter "h:mma")
    (goog.date.DateTime.  d)))
 
 
@@ -431,6 +431,8 @@
 
   (println @chsk-state)
   
+
+  (format-time (js/Date.))
   
   )
 
