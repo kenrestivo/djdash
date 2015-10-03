@@ -106,7 +106,8 @@
                       :playing-url "http://radio.spaz.org/playing.php"
                       :chat-url "http://spaz.org/radio/chatster/doUpdate.php"
                       :mode :release}
-         :timbre {:spit-filename "/tmp/web.log"}}
+         :timbre {:level :info
+                  :spit-filename "/tmp/web.log"}}
   :aliases {"tr" ["with-profile" "+user,+dev,+server"
                   "pdo" "cljsbuild" "once" "dev," "trampoline" "repl" ":headless"]
             "devbuild" ["cljsbuild" "auto" "dev"]})
