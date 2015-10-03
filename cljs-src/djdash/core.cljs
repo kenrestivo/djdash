@@ -54,12 +54,15 @@
   (str (-> n int (/ 1000)) "k"))
 
 
+(defn update-listeners
+  [state]
+  (update-in state [:playing :data 0] conj [(js/Date.now) (-> state :playing :listeners)]))
+
 (def app-state (atom {:playing {:playing (:checking strs)
                                 :listeners (:checking strs)
                                 :data [[]] ;; important to have that empty first series
-                                :timeout 30000
+                                :timeout 60000
                                 :node-name "listener-chart"
-                                :url js/playing_url
                                 :chart-options {:xaxis {:mode "time"
                                                         :timezone "browser"
                                                         :ticks 6
@@ -100,6 +103,7 @@
   (def chsk-state state))
 
 
+
 ;; terrible old js-style action-at-a-distance, but i couldn't get async to work right
 (defn jsonp-playing
   [uri]
@@ -108,8 +112,7 @@
                                              (let [{:keys [listeners] :as new-data} (utils/un-json res)]
                                                (-> s
                                                    (update-in  [:playing] merge  new-data)
-                                                   (update-in  [:playing :data 0] conj [(js/Date.now)
-                                                                                        listeners]))))))))
+                                                   update-listeners)))))))
 
 (defn live?
   [playing]
@@ -125,8 +128,15 @@
 
 
 (defn listeners-view
-  [{:keys [listeners]} owner]
+  [{:keys [listeners timeout] :as state} owner]
   (reify
+    om/IDidMount
+    (did-mount [_]
+      (info timeout)
+      (go (while true
+            (info "updating listeners")
+            (swap! app-state update-listeners)
+            (<! (async/timeout timeout)))))
     om/IRenderState
     (render-state
       [_ s]
@@ -148,19 +158,6 @@
 (defn schedule-view
   [{:keys [data]} owner]
   (reify
-    om/IDidMount
-    (did-mount
-      [_]
-      (let [rfn #(do
-                   (info "sending chsk from anon fn")
-                   (info (chsk-send! [:djdash/schedule {:cmd :refresh}])))]
-        (when (:open? @chsk-state)
-          (info "sending chsk sched early, at mount")
-          (rfn))
-        (add-watch chsk-state :djdash/schedule (fn [_ _ o n]
-                                                 (when (and (not (:open? o)) (:open? n))
-                                                   (info "callback chsk sched send")
-                                                   (rfn))))))
     om/IRenderState
     (render-state
       [_ s]
@@ -170,22 +167,10 @@
                         (om/build-all next-up (take 3 data)))
                  "Checking...")))))
 
-;;       (apply str (for [{:keys [name start_timestamp end_timestamp]} data]
-;;                   [name (format-time start_timestamp) (format-time end_timestamp)]))))))
-
-
-
 
 (defn playing-view
-  [{:keys [playing listeners url timeout]} owner]
+  [{:keys [playing listeners  timeout]} owner]
   (reify
-    om/IWillMount
-    (will-mount
-      [_]
-      (let [c (chan)]
-        (go (while true
-              (jsonp-playing url)
-              (<! (async/timeout timeout))))))
     om/IRenderState
     (render-state
       [_ s]
@@ -324,6 +309,19 @@
 (defn main-view
   [{:keys [playing buffer chat schedule]} owner]
   (reify
+    om/IWillMount
+    (will-mount [_]
+      (let [rfn #(do
+                   (debug "sending chsk from anon fn")
+                   (debug (chsk-send! [:djdash/now-playing {:cmd :refresh}]))
+                   (debug (chsk-send! [:djdash/schedule {:cmd :refresh}])))]
+        (when (:open? @chsk-state)
+          (debug "sending chsk sched early, at mount")
+          (rfn))
+        (add-watch chsk-state :djdash/login-updates (fn [_ _ o n]
+                                                      (when (and (not (:open? o)) (:open? n))
+                                                        (debug "callback chsk sched send")
+                                                        (rfn))))))
     om/IRenderState
     (render-state [_ s]
       (dom/div #js {:id "annoying-placeholder"} ;; annoying               
@@ -363,10 +361,18 @@
   [{:keys [min max avg date]}]
   [date min])
 
+
+
 (defn dispatch-message
   [[id msg]]
   (case id
     :djdash/buffer (swap! app-state update-in [:buffer :data 0] conj  (format-buffer msg))
+    :djdash/now-playing (swap! app-state (fn [o]
+                                           (let [{:keys [listeners] :as new-data} msg]
+                                             (-> o
+                                                 (update-in  [:playing] merge  new-data)
+                                                 (update-in  [:playing :data 0] conj [(js/Date.now)
+                                                                                      listeners])))))
     :djdash/next-shows (swap! app-state assoc-in [:schedule :data] msg)
     (js/console.log "unknown message type")))
 
@@ -427,7 +433,8 @@
   (chsk-send! [:djdash/testsend {:testkey "testdata"}])
 
   (chsk-send! [:djdash/schedule {:cmd :refresh}])
-
+  
+  (chsk-send! [:djdash/now-playing {:cmd :refresh}])
 
   (println @chsk-state)
   

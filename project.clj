@@ -1,4 +1,4 @@
-(defproject djdash "0.1.1-SNAPSHOT"
+(defproject djdash "0.1.1"
   :description "Dashboard for SPAZ Radio"
   :url "http://spaz.org/radio"
 
@@ -12,6 +12,7 @@
                  ;; [ankha "0.1.4"] ;; breaks everything :-(g
                  [ring "1.4.0"]
                  [utilza "0.1.65"]
+                 [me.raynes/conch "0.8.0"]
                  [org.clojure/java.jdbc "0.4.2"]
                  [postgresql "9.1-901-1.jdbc4"]
                  [environ "1.0.1"]
@@ -49,6 +50,11 @@
                                   :bufsiz 10000
                                   :file-check-delay 2000
                                   :chunk-delay 10000}
+                         :nowplaying {:check-delay 10000
+                                      :host "radio.spaz.org"
+                                      :nowplaying-file "/home/www/playing-logs/playing"
+                                      :nowplaying-fake-json-file "/home/www/playing-logs/playing-jsonp"
+                                      :port 8050}
                          :scheduler {:url "http://localhost/schedule-test/week-info"
                                      :ical-file "/home/www/spazradio.ics"
                                      :up-next-file "/home/www/up-next"
@@ -87,6 +93,11 @@
                   :bufsiz 10000
                   :file-check-delay 1000
                   :chunk-delay 10000}
+         :nowplaying {:check-delay 5000
+                      :host "radio.spaz.org"
+                      :nowplaying-file "/home/streams/playing"
+                      :nowplaying-fake-json-file "/home/streams/playing-jsonp"
+                      :port 8050}
          :scheduler {:url "http://radio.spaz.org/api/week-info"
                      :ical-file "/home/streams/spazradio.ics"
                      :up-next-file "/home/streams/up-next"

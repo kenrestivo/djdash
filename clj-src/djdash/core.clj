@@ -8,6 +8,7 @@
             [djdash.server :as srv]
             [djdash.tail :as tail]
             [djdash.schedule :as schedule]
+            [djdash.nowplaying :as nowplaying]
             [clojure.tools.trace :as trace])
   (:gen-class))
 
@@ -16,11 +17,12 @@
 
 
 (defn make-system
-  [{:keys [timbre tailer web-server scheduler] :as options}]
+  [{:keys [timbre tailer web-server scheduler nowplaying] :as options}]
   {:pre  [(every? identity (map map? [timbre tailer web-server]))]} ;; TODO: hack! just use schema
   (component/system-map
    :log (dlog/start-log timbre)
    :tailer (tail/create-tailer tailer)
+   :nowplaying (nowplaying/create-nowplaying nowplaying)
    :scheduler (schedule/create-scheduler scheduler)
    :web-server (srv/start-server web-server)))
 
