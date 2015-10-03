@@ -136,9 +136,14 @@
                (dom/span nil listeners)))))
 
 
-(defn format-next-up
-  [{:keys [name start_timestamp end_timestamp]}]
-  (str name " " (format-time start_timestamp) " - " (format-time end_timestamp)))
+(defn next-up
+  [{:keys [name start_timestamp end_timestamp]} owner]
+  (reify
+    om/IRenderState
+    (render-state [this _]
+      (dom/li #js {:className "upnext"}
+              (str (format-time start_timestamp) " - " (format-time end_timestamp) "   " name )))))
+
 
 (defn schedule-view
   [{:keys [data]} owner]
@@ -159,9 +164,10 @@
     om/IRenderState
     (render-state
       [_ s]
-      (dom/div #js {:class "upnext"} 
+      (dom/div #js {:className "upnext"} 
                (if (< 0 (count data))
-                 (format-next-up (first data))
+                 (apply dom/ul nil
+                        (om/build-all next-up (take 3 data)))
                  "Checking...")))))
 
 ;;       (apply str (for [{:keys [name start_timestamp end_timestamp]} data]

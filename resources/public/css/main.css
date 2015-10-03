@@ -73,3 +73,5 @@ button { color: black; }
 }
 
 .upnext {text-align: left;  }
+
+li.upnext {  list-style-type: none;}
