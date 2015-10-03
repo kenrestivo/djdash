@@ -149,7 +149,7 @@
           (info "sending chsk sched early, at mount")
           (rfn))
         (add-watch chsk-state :djdash/schedule (fn [_ _ o n]
-                                                 (when (and (not (:open? o) (:open? n)))
+                                                 (when (and (not (:open? o)) (:open? n))
                                                    (info "callback chsk sched send")
                                                    (rfn))))))
     om/IRenderState

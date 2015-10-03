@@ -65,14 +65,14 @@
   :cljsbuild {:builds {"dev" {:source-paths ["cljs-src"]
                               :compiler {:output-to "resources/public/js/djdash.js"
                                          :output-dir "resources/public/js/dev"
-                                         :preamble ["react/react.js"]
+                                         :preamble ["cljsjs/development/react.inc.js"]
                                          :optimizations :none
                                          :source-map  true}}
                        "release"{:source-paths ["cljs-src"]
                                  :jar true
                                  :compiler {:output-dir "resources/public/js/release"
                                             :output-to "resources/public/js/djdash-min.js"
-                                            :preamble ["react/react.min.js"]
+                                            :preamble ["cljsjs/production/react.min.inc.js"]
                                             ;;:output-wrapper true ;; don't know why this would be necessary?
                                             :optimizations :advanced
                                             :pretty-print false
