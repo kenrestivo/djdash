@@ -3,6 +3,7 @@
             [environ.core :as env]
             [djdash.web :as web]
             [taoensso.sente :as sente]
+            [clojure.core.async :as async]
             [taoensso.sente.server-adapters.http-kit :as skit]
             [com.stuartsierra.component :as component]
             [org.httpkit.server :as kit]))
@@ -15,12 +16,15 @@
   []
   (let [{:keys [ch-recv send-fn ajax-post-fn ajax-get-or-ws-handshake-fn
                 connected-uids]}
-        (sente/make-channel-socket! skit/sente-web-server-adapter {})] ;; supply userid fn here, or just use :uid in ring
+        (sente/make-channel-socket! skit/sente-web-server-adapter {:user-id-fn :client-id})
+        recv-pub (async/pub ch-recv :id)
+        ]
     {:ring-ajax-post                ajax-post-fn
      :ring-ajax-get-or-ws-handshake ajax-get-or-ws-handshake-fn
-     :ch-chsk                       ch-recv ; ChannelSocket's receive channel
-     :chsk-send!                    send-fn ; ChannelSocket's send API fn
-     :connected-uids                connected-uids ; Watchable, read-only atom
+     :ch-chsk                       ch-recv 
+     :chsk-send!                    send-fn
+     :recv-pub                      recv-pub
+     :connected-uids                connected-uids 
      }
     ))
 
@@ -70,4 +74,15 @@
    (map->Server {:settings settings})
    [:log]))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(comment
+  
+  (require '[djdash.core :as sys])
 
+
+  (do
+    (swap! sys/system component/stop-system [:web-server])
+    (swap! sys/system component/start-system [:web-server])
+    )  
+
+  )

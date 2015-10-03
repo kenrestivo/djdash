@@ -2,6 +2,7 @@
   (:require  [taoensso.timbre :as log]
              [com.stuartsierra.component :as component]
              [cheshire.generate :as jgen]
+             [clojure.core.async :as async]
              [clj-time.coerce :as coerce]             
              [clj-time.core :as ctime]
              [clj-time.format :as fmt]
@@ -164,6 +165,27 @@
   [s]
   (str "update_schedule_meta(\n" s "\n);"))
 
+(defn schedule-listen-loop
+  [{:keys [chsk-send! recv-pub]} {:keys [schedule]}]
+  {:pre [(= clojure.lang.Agent (type schedule))
+         (every? (comp not nil?) [chsk-send! recv-pub])]}
+  (let [sente-ch (async/chan)
+        quit-ch (async/chan)]
+    (future (try
+              (async/sub recv-pub  :djdash/schedule sente-ch)
+              (log/debug "Starting sub for schedule channel")
+              (loop []
+                (let [[{:keys [id client-id ?data]} ch] (async/alts!! [quit-ch sente-ch])]
+                  (when (= ch sente-ch)
+                    (log/debug "sub sending reply to" client-id ?data)
+                    (chsk-send! client-id [:djdash/next-shows
+                                           (:future @schedule)])
+                    (recur))))
+              (catch Exception e
+                (log/error e)))
+            (log/debug "exiting sub for schedule")
+            (async/unsub recv-pub :djdash/schedule sente-ch))
+    quit-ch))
 
 
 (defn watch-schedule-fn
@@ -174,7 +196,7 @@
       (log/trace k "schedule atom watch updated")
       (when (not= old-future new-future)
         (do
-          (log/trace k "schedule changed " o " -> " n)
+          (log/debug k "schedule changed " o " -> " n)
           (try
             (->> n
                  ->ical
@@ -188,7 +210,7 @@
                  (spit next-up-file))
             (catch Exception e
               (log/error e)))
-          (utils/broadcast* sente :djdash/next-shows n))))))
+          (utils/broadcast sente :djdash/next-shows (:future n)))))))
 
 
 
@@ -201,6 +223,7 @@
                           :last-started nil}
                          :error-handler #(log/error %))]
     (add-watch schedule :djdash/update (watch-schedule-fn sente ical-file up-next-file))
+    (log/debug "start-scheduler called")
     {:check-thread (start-checker schedule sente url check-delay)
      :schedule schedule}))
 
@@ -214,7 +237,11 @@
     (log/info "starting scheduler " (:settings this))
     (if scheduler-internal
       this 
-      (assoc this :scheduler-internal (start-scheduler (:settings this) (-> this :web-server :sente)))))
+      (let [scheduler-internal (start-scheduler (:settings this) (-> this :web-server :sente))
+            listen-loop (schedule-listen-loop (-> this :web-server :sente) scheduler-internal)]
+        (log/debug "start-scheduler and schedule-listen-loop returned")
+        (assoc this :scheduler-internal (merge scheduler-internal
+                                               {:quit-chan listen-loop})))))
   (stop
     [this]
     (log/info "stopping scheduler " (:settings this))
@@ -222,6 +249,7 @@
       this
       (do
         (log/debug "branch hit, stopping" this)
+        (async/put! (-> this :scheduler-internal :quit-chan) :quit)
         (stop-schedule this)
         (assoc this :scheduler-internal nil)))))
 
@@ -244,8 +272,7 @@
   (do
     (swap! sys/system component/stop-system [:scheduler])
     (swap! sys/system component/start-system [:scheduler])
-    )
-  
+    )  
 
   (log/error (.getCause *e))
   
@@ -257,6 +284,9 @@
   
   (require '[utilza.repl :as urepl])
 
+
+  (->> @sys/system :scheduler :scheduler-internal :schedule deref :future (urepl/massive-spew "/tmp/foo.edn"))
+  
   (defonce fake-schedule (atom {:current []
                                 :future []
                                 :last-started nil}))
@@ -278,11 +308,5 @@
        deref
        ->ical
        (spit "/home/www/spazradio.ics"))
-  
-
-  (require '[clojure.tools.trace :as trace])
-
-  (trace/trace-vars stop)
-
   
   )

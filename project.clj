@@ -1,6 +1,6 @@
 (defproject djdash "0.1.1-SNAPSHOT"
-  :description ""
-  :url ""
+  :description "Dashboard for SPAZ Radio"
+  :url "http://spaz.org/radio"
 
   :dependencies [[org.clojure/clojure "1.7.0"]
                  [org.clojure/clojurescript "1.7.122"] 
@@ -34,10 +34,13 @@
 
   :source-paths ["clj-src"]
   :plugins [[lein-environ "1.0.0"]
+            [lein-pdo "0.1.1"]
             [lein-cljsbuild "1.1.0"]]
   ;;:hooks [leiningen.cljsbuild]
   :main djdash.core
   :clean-targets ^{:protect false} [:target-path :compile-path "resources/public/js/dev/"
+                                    "resources/public/js/djdash.js"
+                                    "resources/public/js/djdash-min.js"
                                     "resources/public/js/release/"]
   :profiles {:dev {:repl-options {:nrepl-middleware [cemerick.piggieback/wrap-cljs-repl]}
                    :env {:timbre {:level :debug
@@ -94,7 +97,7 @@
                       :mode :release}
          :timbre {:spit-filename "/tmp/web.log"}}
   :aliases {"tr" ["with-profile" "+user,+dev,+server"
-                  "do" "cljsbuild" "once" "dev," "trampoline" "repl" ":headless"]
+                  "pdo" "cljsbuild" "once" "dev," "trampoline" "repl" ":headless"]
             "devbuild" ["cljsbuild" "auto" "dev"]})
 
 

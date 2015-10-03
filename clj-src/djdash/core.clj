@@ -57,7 +57,7 @@
 ;; TODO: pass params!
 (defn -main
   []
-  (println "hello???")
+  (println "Starting dashboard components")
   (go env/env))
 
 
@@ -87,40 +87,6 @@
   (:timbre env/env)
   (go env/env)
 
-
-  (appenders/spit-appender
-   {:fname "/mnt/sdcard/tmp/web.log4j"
-    :output-fn (comp ansi/strip-ansi log/default-output-fn)})
-
-
-  (log/default-output-fn 
-    {:level :debug
-     :?err_ (Exception. "wtf")
-     :vargs_ {}
-     :msg_ "ayyy"
-     :?ns-str "somewhere"
-     :hostname_ "here"
-     :timestamp_ (java.util.Date.)})
-
-  
-
-  (log/default-output-fn {:stacktrace-fonts nil}
-    {:level :debug
-     :?err_ (Exception. "wtf")
-     :vargs_ {}
-     :msg_ "ayyy"
-     :?ns-str "somewhere"
-     :hostname_ "here"
-     :timestamp_ (java.util.Date.)})
-
-  ((partial log/default-output-fn {:stacktrace-fonts nil})
-   {:level :debug
-    :?err_ (Exception. "wtf")
-    :vargs_ {}
-    :msg_ "ayyy"
-    :?ns-str "somewhere"
-    :hostname_ "here"
-    :timestamp_ (java.util.Date.)})
 
 
   )

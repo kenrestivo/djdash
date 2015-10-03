@@ -63,7 +63,7 @@
   (try
     (let [p (process-bufs all)]
       (log/debug " c> " p)
-      (utils/broadcast* sente :djdash/buffer p))
+      (utils/broadcast sente :djdash/buffer p))
     (catch Exception e
       (log/error e))))
 

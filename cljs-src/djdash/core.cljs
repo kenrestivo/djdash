@@ -2,6 +2,10 @@
   (:require-macros [cljs.core.async.macros :refer [go go-loop]])
   (:require [om.core :as om :include-macros true]
             [weasel.repl :as ws-repl]
+            [taoensso.timbre :as log
+             :refer-macros (log  trace  debug  info  warn  error  fatal  report
+                                 logf tracef debugf infof warnf errorf fatalf reportf
+                                 spy get-env log-env)]
             [taoensso.sente  :as sente :refer (cb-success?)]
             [goog.style :as gstyle]
             [goog.storage.mechanism.mechanismfactory]
@@ -9,6 +13,8 @@
             [cljs-http.client :as http]
             [djdash.utils :as utils]
             [om.dom :as dom]
+            [cljs-time.coerce :as coerce]
+            [cljs-time.format :as tformat]
             [clojure.walk :as walk]
             [clojure.browser.dom :as ddom]
             [cljs.core.async :as async :refer [put! chan <!]])
@@ -27,6 +33,12 @@
 (def storage (goog.storage.mechanism.mechanismfactory.create))
 
 (def strs {:checking "Checking..."})
+
+(defn format-time
+  [d]
+  (cljs-time.format/unparse
+   (cljs-time.format/formatter "h:mmp")
+   (goog.date.DateTime.  d)))
 
 
 (defn min-chat-stamp
@@ -57,6 +69,7 @@
                                                         :minTickSize 1
                                                         :tickFormatter (comp str int)
                                                         :color 1}}}
+                      :schedule {:data []}
                       :buffer {:node-name "buffer-chart"
                                :data [[]] ;; important to have that empty first series
                                :chart-options {:xaxis {:mode "time"
@@ -80,27 +93,23 @@
 
 
 
-(let [{:keys [chsk ch-recv send-fn state]}
-      (sente/make-channel-socket! "/ch" ; Note the same path as before
-                                  {:type :auto ; e/o #{:auto :ajax :ws}
-                                   })]
+(let [{:keys [chsk ch-recv send-fn state]} (sente/make-channel-socket! "/ch"  {:type :auto })]
   (def chsk       chsk)
-  (def ch-chsk    ch-recv) ; ChannelSocket's receive channel
-  (def chsk-send! send-fn) ; ChannelSocket's send API fn
-  (def chsk-state state)   ; Watchable, read-only atom
+  (def ch-chsk    ch-recv) 
+  (def chsk-send! send-fn) 
+  (def chsk-state state))
 
 
-  
-  ;; terrible old js-style action-at-a-distance, but i couldn't get async to work right
-  (defn jsonp-playing
-    [uri]
-    (utils/jsonp-wrap uri (fn [res]
-                            (swap! app-state (fn [s]
-                                               (let [{:keys [listeners] :as new-data} (utils/un-json res)]
-                                                 (-> s
-                                                     (update-in  [:playing] merge  new-data)
-                                                     (update-in  [:playing :data 0] conj [(js/Date.now)
-                                                                                          listeners])))))))))
+;; terrible old js-style action-at-a-distance, but i couldn't get async to work right
+(defn jsonp-playing
+  [uri]
+  (utils/jsonp-wrap uri (fn [res]
+                          (swap! app-state (fn [s]
+                                             (let [{:keys [listeners] :as new-data} (utils/un-json res)]
+                                               (-> s
+                                                   (update-in  [:playing] merge  new-data)
+                                                   (update-in  [:playing :data 0] conj [(js/Date.now)
+                                                                                        listeners]))))))))
 
 (defn live?
   [playing]
@@ -125,6 +134,35 @@
                (dom/span #js {:className "text-label"}
                          "Listeners:")
                (dom/span nil listeners)))))
+
+
+(defn schedule-view
+  [{:keys [data]} owner]
+  (reify
+    om/IDidMount
+    (did-mount
+      [_]
+      (let [rfn #(do
+                   (info "sending chsk from anon fn")
+                   (info (chsk-send! [:djdash/schedule {:cmd :refresh}])))]
+        (when (:open? @chsk-state)
+          (info "sending chsk sched early, at mount")
+          (rfn))
+        (add-watch chsk-state :djdash/schedule (fn [_ _ _ n]
+                                                 (when (and (not (:open? o) (:open? n)))
+                                                   (info "callback chsk sched send")
+                                                   (rfn))))))
+    om/IRenderState
+    (render-state
+      [_ s]
+      (dom/div #js {:class "upnext"} 
+       (let [{:keys [name start_timestamp end_timestamp]} (first data)]
+         (str name " " (format-time start_timestamp) " - " (format-time end_timestamp)))))))
+
+
+;;       (apply str (for [{:keys [name start_timestamp end_timestamp]} data]
+;;                   [name (format-time start_timestamp) (format-time end_timestamp)]))))))
+
 
 
 
@@ -274,7 +312,7 @@
 
 
 (defn main-view
-  [{:keys [playing buffer chat]} owner]
+  [{:keys [playing buffer chat schedule]} owner]
   (reify
     om/IRenderState
     (render-state [_ s]
@@ -287,16 +325,52 @@
                         (dom/div #js {:className "col-md-8"}
                                  (om/build flot playing)))
                (dom/div #js {:className "row"}
-                        (dom/div #js {:className "col-md-2"}
+                        (dom/div #js {:className "col-md-2 text-label"}
                                  "Buffer Status")
                         (dom/div #js {:className "col-md-8"}
                                  (om/build flot buffer)))
+               (dom/div #js {:className "row"}
+                        (dom/div #js {:className "col-md-2 text-label"}
+                                 "Who's up?")
+                        (dom/div #js {:className "col-md-8"}
+                                 (om/build schedule-view schedule)))
                (dom/div #js {:className "row"}
                         (om/build chat-users chat))
                (dom/div #js {:className "row"}
                         (dom/div  #js {:className "col-md-8"}
                                   (om/build chat-view chat)))
                ))))
+
+;;  
+
+(om.core/root
+ main-view
+ app-state
+ {:target (. js/document (getElementById "content"))})
+
+
+(defn format-buffer
+  [{:keys [min max avg date]}]
+  [date min])
+
+(defn dispatch-message
+  [[id msg]]
+  (case id
+    :djdash/buffer (swap! app-state update-in [:buffer :data 0] conj  (format-buffer msg))
+    :djdash/next-shows (swap! app-state assoc-in [:schedule :data] msg)
+    (js/console.log "unknown message type")))
+
+
+
+(defn dispatch-event
+  [{:keys [?data id]}]
+  (when (= :chsk/recv id)
+    (dispatch-message ?data)))
+
+
+
+;; this actually starts the routing going
+(def event-router (sente/start-chsk-router! ch-chsk dispatch-event))
 
 
 ;; TODO: auto-reconnect
@@ -306,36 +380,8 @@
   (ws-repl/connect "ws://localhost:9001"))
 
 
-(om.core/root
- main-view
- app-state
- {:target (. js/document (getElementById "content"))})
 
-
-
-
-
-
-(defn format-buffer
-  [{:keys [min max avg date]}]
-  [date min])
-
-(defn dispatch-message
-  [[id msg]]
-  (when (= :djdash/buffer id)
-    (swap! app-state update-in [:buffer :data 0] conj  (format-buffer msg))))
-
-
-(defn dispatch-event
-  [{[ev-type something] :event}]
-  (when (= :chsk/recv ev-type)
-    (dispatch-message something)))
-
-
-
-
-(def foo (sente/start-chsk-router! ch-chsk dispatch-event))
-
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (comment
   ;; breaks everything :-(
@@ -347,19 +393,34 @@
      {:target target}))
   )
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
 (comment
 
   (do
     (swap! app-state assoc-in  [:chat :timeout] 120000)
-    (swap! app-state assoc-in  [:playing :timeout] 1000))
+    (swap! app-state assoc-in  [:playing :timeout] 60000))
 
   
-  (-> @app-state :playing :listener-history utils/mangle-dygraph*)
+  (format-time #inst "2015-09-29T03:00:00.000-00:00")
 
-  (vec '(1 2 3))
+  (-> @app-state :schedule :data)
 
-  (js/console.log (clj->js {:file  (-> @app-state :playing :listener-history utils/mangle-dygraph*)}))
+
+  (apply str (for [{:keys [name start_timestamp end_timestamp]} data]
+               [name (format-time start_timestamp) (format-time end_timestamp)]))
+
+  (timbre/set-level! :trace)
+
+  (taoensso.timbre/set-level! :debug)
+  
+  (taoensso.timbre/info "test")
+
+  (chsk-send! [:djdash/testsend {:testkey "testdata"}])
+
+  (chsk-send! [:djdash/schedule {:cmd :refresh}])
+
+
+  (println @chsk-state)
+  
+  
   )
 
