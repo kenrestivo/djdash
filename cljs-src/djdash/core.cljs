@@ -148,7 +148,7 @@
         (when (:open? @chsk-state)
           (info "sending chsk sched early, at mount")
           (rfn))
-        (add-watch chsk-state :djdash/schedule (fn [_ _ _ n]
+        (add-watch chsk-state :djdash/schedule (fn [_ _ o n]
                                                  (when (and (not (:open? o) (:open? n)))
                                                    (info "callback chsk sched send")
                                                    (rfn))))))
@@ -156,8 +156,8 @@
     (render-state
       [_ s]
       (dom/div #js {:class "upnext"} 
-       (let [{:keys [name start_timestamp end_timestamp]} (first data)]
-         (str name " " (format-time start_timestamp) " - " (format-time end_timestamp)))))))
+               (let [{:keys [name start_timestamp end_timestamp]} (first data)]
+                 (str name " " (format-time start_timestamp) " - " (format-time end_timestamp)))))))
 
 
 ;;       (apply str (for [{:keys [name start_timestamp end_timestamp]} data]
