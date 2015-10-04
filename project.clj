@@ -44,6 +44,7 @@
                                     "resources/public/js/djdash-min.js"
                                     "resources/public/js/release/"]
   :profiles {:dev {:repl-options {:nrepl-middleware [cemerick.piggieback/wrap-cljs-repl]}}
+             :uberjar {:prep-tasks [["cljsbuild" "once" "release"] "javac" "compile"]}
              :repl {:injections [(do
                                    (require 'djdash.core)
                                    (djdash.core/-main))

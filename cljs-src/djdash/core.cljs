@@ -37,7 +37,7 @@
 (defn format-time
   [d]
   (cljs-time.format/unparse
-   (cljs-time.format/formatter (if w "e h:mma" "h:mma"))
+   (cljs-time.format/formatter "h:mma")
    (goog.date.DateTime.  d)))
 
 
