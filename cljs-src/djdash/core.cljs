@@ -37,9 +37,13 @@
 (defn format-time
   [d]
   (cljs-time.format/unparse
-   (cljs-time.format/formatter "h:mma")
+   (cljs-time.format/formatter (if w "e h:mma" "h:mma"))
    (goog.date.DateTime.  d)))
 
+
+(defn short-weekday
+  [d]
+  (.toLocaleString d js/window.navigator.language #js {"weekday" "short"}))
 
 (defn min-chat-stamp
   []
@@ -152,7 +156,8 @@
     om/IRenderState
     (render-state [this _]
       (dom/li #js {:className "upnext"}
-              (str (format-time start_timestamp) " - " (format-time end_timestamp) "   " name )))))
+              (str (short-weekday start_timestamp) " "
+                   (format-time start_timestamp) " - " (format-time end_timestamp) "   " name )))))
 
 
 (defn schedule-view
@@ -439,7 +444,6 @@
   (println @chsk-state)
   
 
-  (format-time (js/Date.))
   
   )
 
