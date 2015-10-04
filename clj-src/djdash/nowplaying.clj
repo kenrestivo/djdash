@@ -71,10 +71,14 @@
 (defn update-nowplaying-fn
   [host port]
   (fn [olde]
-    (sh/let-programs [nowplaying (.getPath (io/resource "scripts/nowplaying.py"))]
-                     (->
-                      (nowplaying host port)
-                      (json/decode true)))))
+    (try
+      (log/trace "checking" host port)
+      (sh/let-programs [nowplaying (.getPath (io/resource "scripts/nowplaying.py"))]
+                       (->
+                        (nowplaying host port)
+                        (json/decode true)))
+      (catch Exception e
+        (log/error e)))))
 
 
 
@@ -83,7 +87,6 @@
   [nowplaying sente check-delay host port]
   (future (while true
             (try
-              ;;(log/debug "checking" url)
               (send-off nowplaying (update-nowplaying-fn host port))
               (catch Exception e
                 (log/error e)))
