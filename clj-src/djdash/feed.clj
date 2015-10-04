@@ -1,6 +1,5 @@
 (ns djdash.feed
   (:require [taoensso.timbre :as log]
-            [environ.core :as env]
             [clojure.data.xml :as xml]
             [utilza.misc :as umisc]
             [clj-time.core :as time]

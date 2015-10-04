@@ -1,6 +1,5 @@
 (ns djdash.server
   (:require [taoensso.timbre :as log]
-            [environ.core :as env]
             [djdash.web :as web]
             [taoensso.sente :as sente]
             [clojure.core.async :as async]
@@ -47,8 +46,8 @@
                                (web/make-handler sente)
                                (kit/run-server  {:port (-> this :settings :port)})))))
         (catch Exception e
-          (log/error e)
-          (log/error (.getCause e))))))
+          (log/error e "<- explosion in webserver start")
+          (log/error (.getCause e) "<- was cause of explosion" )))))
   (stop
     [this]
     (log/info "stopping webserver " (:settings this))
@@ -70,9 +69,12 @@
 (defn start-server
   [settings]
   (log/info "server " settings)
-  (component/using
-   (map->Server {:settings settings})
-   [:log]))
+  (try
+    (component/using
+     (map->Server {:settings settings})
+     [:log])
+    (catch Exception e
+      (println e))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (comment
@@ -85,4 +87,14 @@
     (swap! sys/system component/start-system [:web-server])
     )  
 
+  (def s (setup-sente))
+
+  (def h (web/make-handler {:mode :dev,
+                            :chat-url "http://lamp/spaz/radio/chatster/doUpdate.php"}
+                           s))
+
+  (def srv (kit/run-server h {:port 8080}))
+  
+  (srv)
+  
   )

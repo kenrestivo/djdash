@@ -2,6 +2,8 @@
   (:require  [taoensso.timbre :as log]
              [com.stuartsierra.component :as component]
              [cheshire.generate :as jgen]
+             [clojure.java.io :as io]
+             [clj-http.client :as client]
              [clojure.core.async :as async]
              [clj-time.coerce :as coerce]
              [me.raynes.conch :as sh]
@@ -15,6 +17,7 @@
   (:import  java.text.SimpleDateFormat
             java.util.Locale
             java.util.TimeZone))
+
 
 
 
@@ -68,7 +71,7 @@
 (defn update-nowplaying-fn
   [host port]
   (fn [olde]
-    (sh/let-programs [nowplaying "resources/scripts/nowplaying.py"]
+    (sh/let-programs [nowplaying (.getPath (io/resource "scripts/nowplaying.py"))]
                      (->
                       (nowplaying host port)
                       (json/decode true)))))
@@ -159,10 +162,19 @@
     )  
 
 
-  (->> @sys/system :nowplaying :nowplaying-internal :nowplaying deref)
+  (->> @sys/system :nowplaying :nowplaying-internal :nowplaying deref :playing)
   
   (log/error (.getCause *e))
   
   (log/set-level! :trace)
 
+  (require '[clojure.java.io])
+  (require '[utilza.repl :as urepl])
+  
+  (.getPath (clojure.java.io/resource "scripts/nowplaying.py"))
+
+
+
+
+  
   )

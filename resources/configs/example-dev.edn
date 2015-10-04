@@ -1,0 +1,18 @@
+{:timbre {:level :debug
+          :spit-filename "/mnt/sdcard/tmp/web.log4j"}
+ :tailer {:fpath "/mnt/sdcard/tmp/foo"
+          :bufsiz 10000
+          :file-check-delay 2000
+          :chunk-delay 10000}
+ :now-playing {:check-delay 10000
+              :host "localhost"
+              :nowplaying-file "/home/www/playing-logs/playing"
+              :nowplaying-fake-json-file "/home/www/playing-logs/playing-jsonp"
+              :port 8050}
+ :scheduler {:url "http://localhost/schedule-test/week-info"
+             :ical-file "/home/www/spazradio.ics"
+             :up-next-file "/home/www/up-next"
+             :check-delay 60000}
+ :web-server {:mode :dev
+              :port 8080
+              :chat-url "http://lamp/spaz/radio/chatster/doUpdate.php"}}

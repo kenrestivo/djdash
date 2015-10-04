@@ -1,6 +1,5 @@
 (ns djdash.web
   (:require [taoensso.timbre :as log]
-            [environ.core :as env]
             [stencil.core :as stencil]
             [compojure.handler :as handler]
             [compojure.route :as route]
@@ -17,20 +16,19 @@
 
 
 (defn app-routes
-  [{:keys [mode playing-url chat-url] :as settings}
-   {:keys [ring-ajax-get-or-ws-handshake ring-ajax-post] :as sente}]
+  [{:keys [mode chat-url] :as settings}
+   {:keys [ring-ajax-get-or-ws-handshake ring-ajax-post]}]
   (log/debug "app routes " settings)
   (compojure/routes 
    (compojure/GET  "/ch" req (ring-ajax-get-or-ws-handshake req))
    (compojure/POST "/ch" req (ring-ajax-post                req))
    (compojure/GET "/" [] (stencil/render-file "templates/index"
                                               {:js-slug (stencil/render-file
-                                                         (if (= :dev (:mode settings))
+                                                         (if (= :dev mode)
                                                            "templates/dev"
                                                            "templates/rel")
                                                          {})
-                                               :playing-url (:playing-url settings)
-                                               :chat-url (:chat-url settings)}))))
+                                               :chat-url chat-url}))))
 
 
 

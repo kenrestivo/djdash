@@ -11,7 +11,7 @@
                  [compojure "1.4.0"] 
                  ;; [ankha "0.1.4"] ;; breaks everything :-(g
                  [ring "1.4.0"]
-                 [utilza "0.1.65"]
+                 [utilza "0.1.66"]
                  [me.raynes/conch "0.8.0"]
                  [org.clojure/java.jdbc "0.4.2"]
                  [postgresql "9.1-901-1.jdbc4"]
@@ -43,26 +43,7 @@
                                     "resources/public/js/djdash.js"
                                     "resources/public/js/djdash-min.js"
                                     "resources/public/js/release/"]
-  :profiles {:dev {:repl-options {:nrepl-middleware [cemerick.piggieback/wrap-cljs-repl]}
-                   :env {:timbre {:level :debug
-                                  :spit-filename "/mnt/sdcard/tmp/web.log4j"}
-                         :tailer {:fpath "/mnt/sdcard/tmp/foo"
-                                  :bufsiz 10000
-                                  :file-check-delay 2000
-                                  :chunk-delay 10000}
-                         :nowplaying {:check-delay 10000
-                                      :host "radio.spaz.org"
-                                      :nowplaying-file "/home/www/playing-logs/playing"
-                                      :nowplaying-fake-json-file "/home/www/playing-logs/playing-jsonp"
-                                      :port 8050}
-                         :scheduler {:url "http://localhost/schedule-test/week-info"
-                                     :ical-file "/home/www/spazradio.ics"
-                                     :up-next-file "/home/www/up-next"
-                                     :check-delay 60000}
-                         :web-server {:mode :dev
-                                      :playing-url "http://lamp/playing/playing.php"
-                                      :chat-url "http://lamp/spaz/radio/chatster/doUpdate.php"}}}
-             
+  :profiles {:dev {:repl-options {:nrepl-middleware [cemerick.piggieback/wrap-cljs-repl]}}
              :repl {:injections [(do
                                    (require 'djdash.core)
                                    (djdash.core/-main))
@@ -89,25 +70,6 @@
                                                       "resources/public/js/jquery.min.js"
                                                       "resources/public/js/jquery.flot.time.min.js"
                                                       "resources/public/js/jquery.flot.min.js"]}}}}
-  :env  {:tailer {:fpath "/tmp/master-buffer.log"
-                  :bufsiz 10000
-                  :file-check-delay 1000
-                  :chunk-delay 10000}
-         :nowplaying {:check-delay 5000
-                      :host "radio.spaz.org"
-                      :nowplaying-file "/home/streams/playing"
-                      :nowplaying-fake-json-file "/home/streams/playing-jsonp"
-                      :port 8050}
-         :scheduler {:url "http://radio.spaz.org/api/week-info"
-                     :ical-file "/home/streams/spazradio.ics"
-                     :up-next-file "/home/streams/up-next"
-                     :check-delay 10000}
-         :web-server {:port 8080
-                      :playing-url "http://radio.spaz.org/playing.php"
-                      :chat-url "http://spaz.org/radio/chatster/doUpdate.php"
-                      :mode :release}
-         :timbre {:level :info
-                  :spit-filename "/tmp/web.log"}}
   :aliases {"tr" ["with-profile" "+user,+dev,+server"
                   "pdo" "cljsbuild" "once" "dev," "trampoline" "repl" ":headless"]
             "devbuild" ["cljsbuild" "auto" "dev"]})
