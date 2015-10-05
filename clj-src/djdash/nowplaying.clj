@@ -20,7 +20,7 @@
 
 
 (defn  post-to-hubzilla*
-  [{:keys [url login pw channel]} playing]
+  [{:keys [url login pw channel listen]} playing]
   (log/trace "sending to hubzilla")
   (let [{:keys [body headers]}
         (client/post url
@@ -28,7 +28,8 @@
                       :throw-entire-message? true
                       :as :json
                       :form-params {:title "Now Playing"
-                                    :status playing}})]
+                                    :status (format "%s \nListen here: %s"
+                                                    playing listen)}})]
     (log/trace "sent to hubzilla" body headers)))
 
 

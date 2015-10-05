@@ -4,6 +4,7 @@
           :chunk-delay 10000}
  :hubzilla {:url "https://somewhere"
             :channel "sumchannel"
+            :listen "http://spaz.org/radio"
             :login "someuser"
             :pw "somepass"}
  :now-playing {:check-delay 5000
