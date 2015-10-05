@@ -18,13 +18,13 @@
 
 
 (defn make-system
-  [{:keys [timbre tailer web-server scheduler now-playing]}]
+  [{:keys [timbre tailer web-server scheduler hubzilla now-playing]}]
   ;; TODO: hack! just use schema
-  {:pre  [(every? identity (map map? [timbre tailer scheduler now-playing web-server]))]} 
+  {:pre  [(every? identity (map map? [timbre tailer hubzilla scheduler now-playing web-server]))]} 
   (component/system-map
    :log (dlog/start-log timbre)
    :tailer (tail/create-tailer tailer)
-   :nowplaying (nowplaying/create-nowplaying now-playing)
+   :nowplaying (nowplaying/create-nowplaying now-playing hubzilla)
    :scheduler (schedule/create-scheduler scheduler)
    :web-server (srv/start-server web-server)))
 
@@ -68,7 +68,7 @@
       (println "Starting dashboard components" conf-file conf)
       (go conf))
     (catch Exception e
-      (println e)
+      (println (.getMessage e))
       (println (.getCause e)))))
 
 
@@ -89,7 +89,7 @@
   (future (go env/env))
   
   (into {} @system)
-   
+  
   
   (reload env/env)
 

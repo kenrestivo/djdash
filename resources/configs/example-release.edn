@@ -2,11 +2,15 @@
           :bufsiz 10000
           :file-check-delay 1000
           :chunk-delay 10000}
+ :hubzilla {:url "https://somewhere"
+            :channel "sumchannel"
+            :login "someuser"
+            :pw "somepass"}
  :now-playing {:check-delay 5000
-              :host "radio.spaz.org"
-              :nowplaying-file "/home/streams/playing"
-              :nowplaying-fake-json-file "/home/streams/playing-jsonp"
-              :port 8050}
+               :host "some.host.com"
+               :nowplaying-file "/home/streams/playing"
+               :nowplaying-fake-json-file "/home/streams/playing-jsonp"
+               :port 8050}
  :scheduler {:url "http://radio.spaz.org/api/week-info"
              :ical-file "/home/streams/spazradio.ics"
              :up-next-file "/home/streams/up-next"

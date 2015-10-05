@@ -19,6 +19,28 @@
             java.util.TimeZone))
 
 
+(defn  post-to-hubzilla*
+  [{:keys [url login pw channel]} playing]
+  (log/trace "sending to hubzilla")
+  (let [{:keys [body headers]}
+        (client/post url
+                     {:basic-auth [login pw]
+                      :throw-entire-message? true
+                      :as :json
+                      :form-params {:title "Now Playing"
+                                    :status playing}})]
+    (log/trace "sent to hubzilla" body headers)))
+
+
+(defn post-to-hubzilla
+  [h o n]
+  (log/trace "checking if now playing changed")
+  (when (and (apply not= (map :playing [o n]))
+             (not= "Checking..." (:playing o))
+             (-> o :playing empty? not))
+    (log/trace o n)
+    (future (post-to-hubzilla* h (:playing n)))))
+
 
 
 (defn nowplaying-listen-loop
@@ -49,12 +71,13 @@
 
 
 (defn watch-nowplaying-fn
-  [sente nowplaying-file nowplaying-fake-json-file]
+  [sente nowplaying-file nowplaying-fake-json-file hubzilla]
   (fn [k r o n]
     (log/trace k "nowplaying atom watch updated")
     (when (not= o n)
       (do
         (log/debug k "nowplaying changed " o " -> " n)
+        (utils/broadcast sente :djdash/now-playing n)
         (try 
           (->> n
                json/encode
@@ -63,9 +86,10 @@
                json/encode
                fake-jsonp
                (spit nowplaying-fake-json-file))
+          (post-to-hubzilla hubzilla o n)
           (catch Exception e
-            (log/error e)))
-        (utils/broadcast sente :djdash/now-playing n)))))
+            (log/error e)))))))
+
 
 
 (defn update-nowplaying-fn
@@ -78,9 +102,8 @@
                         (nowplaying host port)
                         (json/decode true)))
       (catch Exception e
-        (log/error e)))))
-
-
+        (log/error e)
+        olde))))
 
 
 (defn start-checker
@@ -95,14 +118,14 @@
 
 
 (defn start-nowplaying
-  [{:keys [check-delay host port nowplaying-file nowplaying-fake-json-file]} sente]
+  [{:keys [check-delay host port nowplaying-file nowplaying-fake-json-file]} sente hubzilla]
   ;; TODO: make this an agent not an atom, and send-off it
   (let [nowplaying-agent (agent  {:playing "Checking..."
                                   :listeners 0}
                                  :error-handler #(log/error %))]
     (add-watch nowplaying-agent :djdash/update
-               (watch-nowplaying-fn sente nowplaying-file nowplaying-fake-json-file))
-    (log/debug "start-nowplayingr called")
+               (watch-nowplaying-fn sente nowplaying-file nowplaying-fake-json-file hubzilla))
+    (log/debug "start-nowplaying called")
     {:check-thread (start-checker nowplaying-agent sente check-delay host port)
      :nowplaying nowplaying-agent}))
 
@@ -120,14 +143,14 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defrecord Nowplaying [settings nowplaying-internal]
+(defrecord Nowplaying [settings hubzilla nowplaying-internal]
   component/Lifecycle
   (start
     [this]
     (log/info "starting nowplaying " (:settings this))
     (if nowplaying-internal
       this 
-      (let [nowplaying-internal (start-nowplaying (:settings this) (-> this :web-server :sente))
+      (let [nowplaying-internal (start-nowplaying (:settings this) (-> this :web-server :sente) hubzilla)
             listen-loop (nowplaying-listen-loop (-> this :web-server :sente) nowplaying-internal)]
         (log/debug "start-nowplaying and nowplaying-listen-loop returned")
         (assoc this :nowplaying-internal (merge nowplaying-internal
@@ -145,10 +168,11 @@
 
 
 (defn create-nowplaying
-  [settings]
-  (log/info "nowplaying " settings)
+  [settings hubzilla]
+  (log/info "nowplaying " settings hubzilla)
   (component/using
-   (map->Nowplaying {:settings settings})
+   (map->Nowplaying {:settings settings
+                     :hubzilla hubzilla})
    [:log :web-server]))
 
 
@@ -164,6 +188,7 @@
     (swap! sys/system component/start-system [:nowplaying])
     )  
 
+  (log/set-level! :trace)
 
   (->> @sys/system :nowplaying :nowplaying-internal :nowplaying deref :playing)
   
@@ -176,8 +201,18 @@
   
   (.getPath (clojure.java.io/resource "scripts/nowplaying.py"))
 
+  (require '[utilza.repl :as urepl])
+
+  (post-to-hubzilla*  (->> @sys/system :nowplaying :hubzilla)
+                      (->> @sys/system
+                           :nowplaying
+                           :nowplaying-internal
+                           :nowplaying
+                           deref
+                           :playing))
 
 
 
-  
+
+
   )
