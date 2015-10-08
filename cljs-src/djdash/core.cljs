@@ -335,7 +335,7 @@
                                  (om/build flot playing)))
                (dom/div #js {:className "row"}
                         (dom/div #js {:className "col-md-2 text-label"}
-                                 "Connection Quality")
+                                 "DJ Connection Quality")
                         (dom/div #js {:className "col-md-8"}
                                  (om/build flot buffer)))
                (dom/div #js {:className "row"}
