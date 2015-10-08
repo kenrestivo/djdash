@@ -13,9 +13,3 @@
   [system k data]
   (broadcast (-> system :web-server :sente) k data))
 
-(defn escape-html
-  [text]
-  (clojure.string/escape text {"&"  "&amp;"
-                               "<"  "&lt;"
-                               ">"  "&gt;"
-                               "\"" "&quot;"}))

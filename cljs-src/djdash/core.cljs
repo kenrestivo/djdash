@@ -11,6 +11,7 @@
             [goog.storage.mechanism.mechanismfactory]
             ;; [ankha.core :as ankha] ;; breaks everything :-(
             [cljs-http.client :as http]
+            [cljs-time.core :as time]
             [djdash.utils :as utils]
             [om.dom :as dom]
             [cljs-time.coerce :as coerce]
@@ -63,6 +64,7 @@
   (update-in state [:playing :data 0] conj [(js/Date.now) (-> state :playing :listeners)]))
 
 (def app-state (atom {:playing {:playing (:checking strs)
+                                :live? false
                                 :listeners (:checking strs)
                                 :data [[]] ;; important to have that empty first series
                                 :timeout 60000
@@ -108,26 +110,16 @@
 
 
 
-;; terrible old js-style action-at-a-distance, but i couldn't get async to work right
-(defn jsonp-playing
-  [uri]
-  (utils/jsonp-wrap uri (fn [res]
-                          (swap! app-state (fn [s]
-                                             (let [{:keys [listeners] :as new-data} (utils/un-json res)]
-                                               (-> s
-                                                   (update-in  [:playing] merge  new-data)
-                                                   update-listeners)))))))
-
 (defn live?
-  [playing]
-  (->> playing
+  [playing-text]
+  (->> playing-text
        (re-find  #"^\[LIVE\!\].*?")
        boolean))
 
 (defn on-air-div
-  [playing]
+  [live? playing-text]
   (dom/div #js {:id "on_air"
-                :className (if (live? playing) "label label-danger paddy" "hidden")}
+                :className (if live? "label label-danger paddy" "hidden")}
            "LIVE!"))
 
 
@@ -150,31 +142,35 @@
                (dom/span nil listeners)))))
 
 
+(defn format-schedule-item
+  [name start_timestamp end_timestamp]
+  (str (short-weekday start_timestamp) " "
+       (format-time start_timestamp) " - " (format-time end_timestamp) "   " name ))
+
 (defn next-up
   [{:keys [name start_timestamp end_timestamp]} owner]
   (reify
     om/IRenderState
     (render-state [this _]
       (dom/li #js {:className "upnext"}
-              (str (short-weekday start_timestamp) " "
-                   (format-time start_timestamp) " - " (format-time end_timestamp) "   " name )))))
+              (format-schedule-item name start_timestamp end_timestamp)))))
 
 
 (defn schedule-view
-  [{:keys [data]} owner]
+  [{{:keys [future]} :data} owner]
   (reify
     om/IRenderState
     (render-state
       [_ s]
-      (dom/div #js {:className "upnext"} 
-               (if (< 0 (count data))
+      (dom/div #js {:className "upnext"}
+               (if (< 0 (count future))
                  (apply dom/ul nil
-                        (om/build-all next-up (take 3 data)))
+                        (om/build-all next-up (take 3 future)))
                  "Checking...")))))
 
 
 (defn playing-view
-  [{:keys [playing listeners  timeout]} owner]
+  [{:keys [playing listeners live?  timeout]} owner]
   (reify
     om/IRenderState
     (render-state
@@ -183,7 +179,7 @@
                (dom/span #js {:className "text-label"}
                          "Now Playing:")
                (dom/span  nil
-                          (on-air-div playing)
+                          (on-air-div live? playing)
                           playing )))))
 
 
@@ -339,12 +335,16 @@
                                  (om/build flot playing)))
                (dom/div #js {:className "row"}
                         (dom/div #js {:className "col-md-2 text-label"}
-                                 "Buffer Status")
+                                 "Connection Quality")
                         (dom/div #js {:className "col-md-8"}
                                  (om/build flot buffer)))
                (dom/div #js {:className "row"}
-                        (dom/div #js {:className "col-md-2 text-label"}
-                                 "Who's up?")
+                        (dom/div #js {:className "col-md-2"}
+                                 (dom/div #js {:className "text-label"}
+                                          "Who's up?")
+                                 (dom/div nil
+                                          "("(dom/a #js {:href "http://radio.spaz.org/spazradio.ics"}
+                                                    "Weekly Calendar")")"))
                         (dom/div #js {:className "col-md-8"}
                                  (om/build schedule-view schedule)))
                (dom/div #js {:className "row"}
@@ -373,9 +373,10 @@
   (case id
     :djdash/buffer (swap! app-state update-in [:buffer :data 0] conj  (format-buffer msg))
     :djdash/now-playing (swap! app-state (fn [o]
-                                           (let [{:keys [listeners] :as new-data} msg]
+                                           (let [{:keys [listeners playing] :as new-data} msg]
                                              (-> o
                                                  (update-in  [:playing] merge  new-data)
+                                                 (assoc-in  [:playing :live?] (live? playing))
                                                  (update-in  [:playing :data 0] conj [(js/Date.now)
                                                                                       listeners])))))
     :djdash/next-shows (swap! app-state assoc-in [:schedule :data] msg)
@@ -442,8 +443,21 @@
   (chsk-send! [:djdash/now-playing {:cmd :refresh}])
 
   (println @chsk-state)
-  
 
+  
+  ;; do this on a timer, with a go loop, every minute maybe?
+  ;; create a view for it.
+  (let [{:keys [name start_timestamp end_timestamp]} (->> @app-state :schedule :data :current last)
+        now  (cljs-time.core/now)]
+    (if (and (cljs-time.core/after?   now start_timestamp)
+             (cljs-time.core/before?  now  end_timestamp))
+      (format-schedule-item name start_timestamp end_timestamp)
+      "Random Archives"))
+  
+  (->> @app-state :playing :playing)
+
+  (dispatch-message  [:djdash/now-playing {:playing "[LIVE!] some test"
+                                           :listeners 1}])
   
   )
 

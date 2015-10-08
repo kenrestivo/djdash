@@ -179,7 +179,7 @@
                   (when (= ch sente-ch)
                     (log/debug "sub sending reply to" client-id ?data)
                     (chsk-send! client-id [:djdash/next-shows
-                                           (:future @schedule)])
+                                           @schedule])
                     (recur))))
               (catch Exception e
                 (log/error e)))
@@ -197,12 +197,14 @@
       (when (not= old-future new-future)
         (do
           (log/debug k "schedule changed " o " -> " n)
-          (try
-            (->> n
-                 ->ical
-                 (spit ical-file))
-            (catch Exception e
-              (log/error e)))
+          (future
+            (try
+              (log/info "dumping schedule to" ical-file)
+              (->> n
+                   ->ical
+                   (spit ical-file))
+              (catch Exception e
+                (log/error e))))
           (try 
             (->> new-future
                  json/encode
