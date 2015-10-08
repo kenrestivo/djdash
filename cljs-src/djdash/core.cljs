@@ -78,7 +78,9 @@
                                                         :minTickSize 1
                                                         :tickFormatter (comp str int)
                                                         :color 1}}}
-                      :schedule {:data []}
+                      :schedule {:data []
+                                 :timeout 30000
+                                 :now "Checking..."}
                       :buffer {:node-name "buffer-chart"
                                :data [[]] ;; important to have that empty first series
                                :chart-options {:xaxis {:mode "time"
@@ -154,6 +156,37 @@
     (render-state [this _]
       (dom/li #js {:className "upnext"}
               (format-schedule-item name start_timestamp end_timestamp)))))
+
+
+(defn get-currently-scheduled
+  [{:keys [name start_timestamp end_timestamp]}]
+  (let [now  (cljs-time.core/now)]
+    (if (and (cljs-time.core/after?   now start_timestamp)
+             (cljs-time.core/before?  now  end_timestamp))
+      (format-schedule-item name start_timestamp end_timestamp)
+      "Nobody (Random Archives)")))
+
+
+(defn update-scheduled-now
+  [old-app-state {:keys [current]}]
+  (assoc-in old-app-state [:schedule :now] (get-currently-scheduled (last current))))
+
+(defn scheduled-now-view
+  [{:keys [data timeout now]}  owner]
+  (reify
+    om/IWillMount
+    (will-mount
+      [_]
+      (let [c (chan)]
+        (go (while true
+              (swap! app-state update-scheduled-now data)
+              (<! (async/timeout timeout))))))
+    om/IRenderState
+    (render-state
+      [_ s]
+      (dom/ul #js {:className "upnext"}
+              (dom/li #js {:className "upnext"}
+                      now)))))
 
 
 (defn schedule-view
@@ -341,6 +374,12 @@
                (dom/div #js {:className "row"}
                         (dom/div #js {:className "col-md-2"}
                                  (dom/div #js {:className "text-label"}
+                                          "Who's scheduled now?")
+                                 )                        (dom/div #js {:className "col-md-8"}
+                                                                   (om/build scheduled-now-view schedule)))
+               (dom/div #js {:className "row"}
+                        (dom/div #js {:className "col-md-2"}
+                                 (dom/div #js {:className "text-label"}
                                           "Who's up?")
                                  (dom/div nil
                                           "("(dom/a #js {:href "http://radio.spaz.org/spazradio.ics"}
@@ -379,7 +418,10 @@
                                                  (assoc-in  [:playing :live?] (live? playing))
                                                  (update-in  [:playing :data 0] conj [(js/Date.now)
                                                                                       listeners])))))
-    :djdash/next-shows (swap! app-state assoc-in [:schedule :data] msg)
+    :djdash/next-shows (swap! app-state (fn [o]
+                                          (-> o
+                                              (assoc-in [:schedule :data] msg)
+                                              (update-scheduled-now msg))))
     (js/console.log "unknown message type")))
 
 
@@ -447,12 +489,7 @@
   
   ;; do this on a timer, with a go loop, every minute maybe?
   ;; create a view for it.
-  (let [{:keys [name start_timestamp end_timestamp]} (->> @app-state :schedule :data :current last)
-        now  (cljs-time.core/now)]
-    (if (and (cljs-time.core/after?   now start_timestamp)
-             (cljs-time.core/before?  now  end_timestamp))
-      (format-schedule-item name start_timestamp end_timestamp)
-      "Random Archives"))
+
   
   (->> @app-state :playing :playing)
 
