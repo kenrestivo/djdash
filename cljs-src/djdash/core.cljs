@@ -161,7 +161,8 @@
 (defn get-currently-scheduled
   [{:keys [name start_timestamp end_timestamp]}]
   (let [now  (cljs-time.core/now)]
-    (if (and (cljs-time.core/after?   now start_timestamp)
+    (if (and start_timestamp end_timestamp
+             (cljs-time.core/after?   now start_timestamp)
              (cljs-time.core/before?  now  end_timestamp))
       (format-schedule-item name start_timestamp end_timestamp)
       "Nobody (Random Archives)")))
@@ -169,7 +170,7 @@
 
 (defn update-scheduled-now
   [old-app-state {:keys [current]}]
-  (assoc-in old-app-state [:schedule :now] (get-currently-scheduled (last current))))
+  (assoc-in old-app-state [:schedule :now] (-> current last get-currently-scheduled)))
 
 (defn scheduled-now-view
   [{:keys [data timeout now]}  owner]
