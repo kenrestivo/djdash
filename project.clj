@@ -42,6 +42,7 @@
   :clean-targets ^{:protect false} [:target-path :compile-path "resources/public/js/dev/"
                                     "resources/public/js/djdash.js"
                                     "resources/public/js/djdash-min.js"
+                                    "resources/public/js/djdash.js.map"
                                     "resources/public/js/release/"]
   :profiles {:dev {:repl-options {:nrepl-middleware [cemerick.piggieback/wrap-cljs-repl]}}
              :uberjar {:prep-tasks [["cljsbuild" "once" "release"] "javac" "compile"]}
