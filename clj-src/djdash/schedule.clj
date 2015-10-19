@@ -71,7 +71,8 @@
   (->> m
        (group-by #(->> % :start_timestamp (.after d)))
        vals
-       (zipmap [:current :future])))
+       reverse ;; because sometimes there are no current, everything is future!
+       (zipmap [:future :current])))
 
 
 
@@ -224,6 +225,7 @@
                           :future []
                           :last-started nil}
                          :error-handler #(log/error %))]
+    (set-validator! schedule map?)
     (add-watch schedule :djdash/update (watch-schedule-fn sente ical-file up-next-file))
     (log/debug "start-scheduler called")
     {:check-thread (start-checker schedule sente url check-delay)
@@ -268,8 +270,10 @@
 
 (comment
 
-  (require '[djdash.core :as sys])
-
+  (do
+    (require '[djdash.core :as sys])
+    (require '[utilza.repl :as urepl])
+    )
 
   (do
     (swap! sys/system component/stop-system [:scheduler])
@@ -284,10 +288,10 @@
   
   (log/set-level! :info)
   
-  (require '[utilza.repl :as urepl])
 
 
-  (->> @sys/system :scheduler :scheduler-internal :schedule deref :future (urepl/massive-spew "/tmp/foo.edn"))
+
+  (->> @sys/system :scheduler :scheduler-internal :schedule deref  (urepl/massive-spew "/tmp/foo.edn"))
   
   (defonce fake-schedule (atom {:current []
                                 :future []
@@ -310,5 +314,12 @@
        deref
        ->ical
        (spit "/home/www/spazradio.ics"))
+
+  (->> "http://radio.spaz.org/api/week-info"
+       fetch-schedule
+       (split-by-current (java.util.Date.))
+       (urepl/massive-spew "/tmp/foo.edn"))
+
+
   
   )
