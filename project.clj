@@ -1,4 +1,4 @@
-(defproject djdash "0.1.1"
+(defproject djdash "0.1.2"
   :description "Dashboard for SPAZ Radio"
   :url "http://spaz.org/radio"
 
@@ -8,16 +8,18 @@
                  [cljs-http "0.1.37"]
                  [com.taoensso/sente "1.6.0" :exclusions [com.taoensso/encore]]
                  [com.stuartsierra/component "0.3.0"]
+                 [org.clojure/data.zip "0.1.1"]
+                 [camel-snake-kebab "0.3.2"]
+                 [enlive "1.1.6"]
                  [compojure "1.4.0"] 
                  ;; [ankha "0.1.4"] ;; breaks everything :-(g
                  [ring "1.4.0"]
-                 [utilza "0.1.66"]
                  [me.raynes/conch "0.8.0"]
                  [org.clojure/java.jdbc "0.4.2"]
                  [postgresql "9.1-901-1.jdbc4"]
                  [environ "1.0.1"]
                  [http-kit "2.1.19"]
-                 [utilza "0.1.61"]
+                 [utilza "0.1.69"]
                  [clj-ical "1.1" :exclusions [clj-time]]
                  [org.clojure/data.xml "0.0.8"]
                  [clj-time "0.11.0"]
@@ -41,6 +43,7 @@
   :main djdash.core
   :clean-targets ^{:protect false} [:target-path :compile-path "resources/public/js/dev/"
                                     "resources/public/js/djdash.js"
+                                    "resources/public/js/djdash.js.map"
                                     "resources/public/js/djdash-min.js"
                                     "resources/public/js/djdash.js.map"
                                     "resources/public/js/release/"]

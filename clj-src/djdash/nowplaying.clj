@@ -2,7 +2,12 @@
   (:require  [taoensso.timbre :as log]
              [com.stuartsierra.component :as component]
              [cheshire.generate :as jgen]
+             [net.cgrand.enlive-html :as enlive]
              [clojure.java.io :as io]
+             [djdash.stats :as stats]
+             [clojure.string :as str]
+             [utilza.enlive :as unlive]
+             [utilza.file :as ufile]
              [clj-http.client :as client]
              [clojure.core.async :as async]
              [clj-time.coerce :as coerce]
@@ -14,11 +19,92 @@
              [clj-ical.format :as ical]
              [utilza.misc :as umisc]
              [clojure.tools.trace :as trace])
-  (:import  java.text.SimpleDateFormat
-            java.util.Locale
-            java.util.TimeZone))
+  (:import (java.net Socket)
+           (java.io PrintWriter InputStreamReader BufferedReader)
+           java.text.SimpleDateFormat
+           java.util.Locale
+           java.util.TimeZone))
 
 
+(def keys-triggering-broadcast [:playing :listeners])
+(def archives-host "localhost")
+(def archives-port 1234)
+
+
+;;;;;;;
+
+
+
+(defn munge-archives*
+  [s]
+  (-> s
+      (str/replace #"unknown-" "")
+      (str/replace #".ogg" "")
+      (str/replace #".mp3" "")
+      (str/replace #"-\d+kbps" "")))
+
+
+;; the archive thing, transliterated from python
+(defn munge-archives
+  [s]
+  (->> s
+       str/split-lines
+       (filter #(.contains % "[playing]"))
+       first
+       (#(str/split % #" "))
+       rest
+       first
+       (ufile/path-sep "/")
+       last
+       munge-archives*))
+
+(defn check-archives
+  [archives-host archives-port]
+  (let [socket (Socket. archives-host archives-port)
+        in (BufferedReader. (InputStreamReader. (.getInputStream socket)))
+        out (PrintWriter. (.getOutputStream socket))]
+    (doto out
+      (.println "archives.next\nquit\n")
+      .flush)
+    (slurp in)))
+
+
+(defn get-archives
+  [archives-host archives-port]
+  (try
+    (munge-archives (check-archives archives-host archives-port))
+    (catch Exception e
+      (log/error e archives-host archives-port))))
+
+
+;; TODO: deal with the entire returned result being "Unknown", it can happen, it should null out
+(defn remove-unknown
+  [s]
+  (->  s
+       (str/replace #" - Unknown" "")
+       (str/replace #" - \(null\)" "")
+       (str/replace #" - <NULL>" "")))
+
+
+(defn get-icecast-playing
+  ([url]
+     (->> url
+          java.net.URL.
+          enlive/html-resource
+          (#(enlive/select % [:td]))
+          (map (comp first :content))
+          (partition 2 1)
+          (filter #(= "Current Song:" (first %)))
+          first
+          second
+          remove-unknown))
+  ([host ^Integer port mount]
+     (get-icecast-playing (format "http://%s:%d/status.xsl?mount=/%s" host port mount))))
+
+
+
+
+;; TODO: have some hysteresis here. put it in a one-member queue channel, wait for a timeout, only send if it times out?
 (defn  post-to-hubzilla*
   [{:keys [url login pw channel listen]} playing]
   (log/trace "sending to hubzilla")
@@ -30,7 +116,7 @@
                       :form-params {:title "Now Playing"
                                     :status (format "%s \nListen here: %s"
                                                     playing listen)}})]
-    (log/trace "sent to hubzilla" body headers)))
+    (log/trace "sent to hubzilla" body  " --> " headers)))
 
 
 (defn post-to-hubzilla
@@ -48,7 +134,7 @@
   [{:keys [chsk-send! recv-pub]} {:keys [nowplaying]}]
   {:pre [(= clojure.lang.Agent (type nowplaying))
          (every? (comp not nil?) [chsk-send! recv-pub])]}
-  (let [sente-ch (async/chan)
+  (let [sente-ch (async/chan (async/sliding-buffer 1000))
         quit-ch (async/chan)]
     (future (try
               (async/sub recv-pub  :djdash/now-playing sente-ch)
@@ -57,7 +143,8 @@
                 (let [[{:keys [id client-id ?data]} ch] (async/alts!! [quit-ch sente-ch])]
                   (when (= ch sente-ch)
                     (log/debug "sub sending reply to" client-id ?data)
-                    (chsk-send! client-id [:djdash/now-playing @nowplaying])
+                    (chsk-send! client-id [:djdash/now-playing
+                                           (select-keys @nowplaying keys-triggering-broadcast)])
                     (recur))))
               (catch Exception e
                 (log/error e)))
@@ -71,47 +158,65 @@
   (str "update_meta(\n" s "\n);"))
 
 
+
 (defn watch-nowplaying-fn
-  [sente nowplaying-file nowplaying-fake-json-file hubzilla]
+  [sente fake-json-file fake-jsonp-file hubzilla]
   (fn [k r o n]
     (log/trace k "nowplaying atom watch updated")
-    (when (not= o n)
+    (when (apply not= (map #(select-keys % keys-triggering-broadcast) [o n]))
       (do
-        (log/debug k "nowplaying changed " o " -> " n)
-        (utils/broadcast sente :djdash/now-playing n)
+        (log/debug k "nowplaying changed, broadcasting " o " -> " n)
+        (utils/broadcast sente :djdash/now-playing (select-keys n keys-triggering-broadcast))
         (try 
           (->> n
                json/encode
-               (spit nowplaying-file))
+               (spit fake-json-file))
           (->> n
                json/encode
                fake-jsonp
-               (spit nowplaying-fake-json-file))
+               (spit fake-jsonp-file))
           (post-to-hubzilla hubzilla o n)
           (catch Exception e
             (log/error e)))))))
 
 
 
-(defn update-nowplaying-fn
-  [host port]
+
+(defn update-playing-fn
+  [{:keys [host port adminuser adminpass song-mount] :as settings}]
   (fn [olde]
+    (log/trace "checking playing" host port adminuser adminpass song-mount)
     (try
-      (log/trace "checking" host port)
-      (sh/let-programs [nowplaying (.getPath (io/resource "scripts/nowplaying.py"))]
-                       (->
-                        (nowplaying host port)
-                        (json/decode true)))
+      (assoc olde :playing (or (get-icecast-playing host port song-mount)
+                               (get-archives archives-host archives-port)
+                               "IT'S A MYSTERY! Listen and guess."))
       (catch Exception e
         (log/error e)
         olde))))
 
 
+
+(defn update-listeners
+  [olde {:keys [host port adminuser adminpass song-mount] :as settings} request-ch]
+  (log/trace "checking listeners" host port adminuser adminpass song-mount)
+  (try
+    (let [combined (stats/get-combined-stats settings)]
+      ;; send off to geos to deal with
+      (async/>!! request-ch combined)
+      (-> olde
+          (assoc :listeners (stats/total-listener-count combined))))
+    (catch Exception e
+      (log/error e)
+      olde)))
+
+
 (defn start-checker
-  [nowplaying sente check-delay host port]
+  [nowplaying-agent sente request-ch {:keys [check-delay] :as settings}]
   (future (while true
             (try
-              (send-off nowplaying (update-nowplaying-fn host port))
+              (doto nowplaying-agent
+                (send-off (update-playing-fn settings))
+                (send-off update-listeners settings request-ch))
               (catch Exception e
                 (log/error e)))
             (Thread/sleep check-delay))))
@@ -119,15 +224,14 @@
 
 
 (defn start-nowplaying
-  [{:keys [check-delay host port nowplaying-file nowplaying-fake-json-file]} sente hubzilla]
-  ;; TODO: make this an agent not an atom, and send-off it
+  [{:keys [check-delay host port fake-json-file fake-jsonp-file] :as settings} sente request-ch hubzilla]
   (let [nowplaying-agent (agent  {:playing "Checking..."
                                   :listeners 0}
                                  :error-handler #(log/error %))]
     (add-watch nowplaying-agent :djdash/update
-               (watch-nowplaying-fn sente nowplaying-file nowplaying-fake-json-file hubzilla))
+               (watch-nowplaying-fn sente fake-json-file fake-jsonp-file hubzilla))
     (log/debug "start-nowplaying called")
-    {:check-thread (start-checker nowplaying-agent sente check-delay host port)
+    {:check-thread (start-checker nowplaying-agent sente request-ch settings)
      :nowplaying nowplaying-agent}))
 
 
@@ -151,7 +255,10 @@
     (log/info "starting nowplaying " (:settings this))
     (if nowplaying-internal
       this 
-      (let [nowplaying-internal (start-nowplaying (:settings this) (-> this :web-server :sente) hubzilla)
+      (let [nowplaying-internal (start-nowplaying (:settings this)
+                                                  (-> this :web-server :sente)
+                                                  (-> this :geo :request-ch)
+                                                  hubzilla)
             listen-loop (nowplaying-listen-loop (-> this :web-server :sente) nowplaying-internal)]
         (log/debug "start-nowplaying and nowplaying-listen-loop returned")
         (assoc this :nowplaying-internal (merge nowplaying-internal
@@ -170,26 +277,29 @@
 
 (defn create-nowplaying
   [settings hubzilla]
+  ;; TODO: verify all the settings are there and correct
   (log/info "nowplaying " settings hubzilla)
   (component/using
    (map->Nowplaying {:settings settings
                      :hubzilla hubzilla})
-   [:log :web-server]))
+   [:log :geo :web-server]))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (comment
-
-  (require '[djdash.core :as sys])
-
+  
+  (do
+    (require '[djdash.core :as sys])
+    (require '[utilza.repl :as urepl])
+    )
 
   (do
     (swap! sys/system component/stop-system [:nowplaying])
     (swap! sys/system component/start-system [:nowplaying])
-    )  
-
-  (log/set-level! :trace)
+    )
+  
+  (log/set-level! :info)
 
   (->> @sys/system :nowplaying :nowplaying-internal :nowplaying deref :playing)
   
@@ -197,12 +307,8 @@
   
   (log/set-level! :trace)
 
-  (require '[clojure.java.io])
-  (require '[utilza.repl :as urepl])
-  
-  (.getPath (clojure.java.io/resource "scripts/nowplaying.py"))
 
-  (require '[utilza.repl :as urepl])
+  
 
   (post-to-hubzilla*  (->> @sys/system :nowplaying :hubzilla)
                       (->> @sys/system
@@ -214,6 +320,18 @@
 
 
 
+  (-> @sys/system :nowplaying :nowplaying-internal :nowplaying deref :-combined)
+
+  
+  
+  (-> @sys/system :nowplaying :nowplaying-internal :nowplaying deref :connections
+      (#(urepl/massive-spew "/tmp/foo.edn" %)))
 
 
+  (apply disj (set [:foo :bar]) [:foo])
+
+  
+  (apply dissoc {:foo 1 :bar 2 :baz 3} [:foo :baz])
+
+  
   )

@@ -170,11 +170,11 @@
   [{:keys [chsk-send! recv-pub]} {:keys [schedule]}]
   {:pre [(= clojure.lang.Agent (type schedule))
          (every? (comp not nil?) [chsk-send! recv-pub])]}
-  (let [sente-ch (async/chan)
-        quit-ch (async/chan)]
+  (let [sente-ch (async/chan (async/sliding-buffer 1000))
+        quit-ch (async/chan (async/sliding-buffer 1000))]
     (future (try
               (async/sub recv-pub  :djdash/schedule sente-ch)
-              (log/debug "Starting sub for schedule channel")
+              (log/debug "starting sub for schedule channel")
               (loop []
                 (let [[{:keys [id client-id ?data]} ch] (async/alts!! [quit-ch sente-ch])]
                   (when (= ch sente-ch)
@@ -213,7 +213,7 @@
                  (spit next-up-file))
             (catch Exception e
               (log/error e)))
-          (utils/broadcast sente :djdash/next-shows (:future n)))))))
+          (utils/broadcast sente :djdash/next-shows n))))))
 
 
 

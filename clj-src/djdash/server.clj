@@ -16,7 +16,7 @@
   (let [{:keys [ch-recv send-fn ajax-post-fn ajax-get-or-ws-handshake-fn
                 connected-uids]}
         (sente/make-channel-socket! skit/sente-web-server-adapter {:user-id-fn :client-id})
-        recv-pub (async/pub ch-recv :id)
+        recv-pub (async/pub ch-recv :id (fn [_] (async/sliding-buffer 1000)))
         ]
     {:ring-ajax-post                ajax-post-fn
      :ring-ajax-get-or-ws-handshake ajax-get-or-ws-handshake-fn

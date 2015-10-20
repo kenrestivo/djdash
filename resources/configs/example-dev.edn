@@ -9,10 +9,18 @@
             :listen "http://spaz.org/radio"
             :login "someuser"
             :pw "somepass"}
+ :db {:filename "/mnt/sdcard/tmp/dash.db"
+      :autosave-timeout 10000}
+ :geo {:api-key "key-here"
+       :ratelimit-delay-ms 500
+       :url "http://api.ipinfodb.com/v3/ip-city/"}
  :now-playing {:check-delay 10000
                :host "localhost"
-               :nowplaying-file "/home/www/playing-logs/playing"
-               :nowplaying-fake-json-file "/home/www/playing-logs/playing-jsonp"
+               :adminuser "admin"
+               :song-mount "radio"
+               :adminpass "hackme"
+               :fake-json-file "/home/www/playing-logs/playing"
+               :fake-jsonp-file "/home/www/playing-logs/playing-jsonp"
                :port 8050}
  :scheduler {:url "http://localhost/schedule-test/week-info"
              :ical-file "/home/www/spazradio.ics"

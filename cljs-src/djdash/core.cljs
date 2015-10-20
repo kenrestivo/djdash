@@ -14,14 +14,19 @@
             [cljs-time.core :as time]
             [djdash.utils :as utils]
             [om.dom :as dom]
+            [goog.string :as gstring]
             [cljs-time.coerce :as coerce]
             [cljs-time.format :as tformat]
             [clojure.walk :as walk]
             [clojure.browser.dom :as ddom]
             [cljs.core.async :as async :refer [put! chan <!]])
   (:import [goog.net Jsonp]
+           
            [goog Uri]))
 
+
+;; BIZARRE! sente DOES NOT WORK without this set to DEBUG!!! if you set it to info, sente fails.
+(taoensso.timbre/set-level! :debug)
 
 
 (comment
@@ -30,6 +35,9 @@
   )
 
 (def ^:export jq js/jQuery)
+
+(def ^:export L js/L)
+
 
 (def storage (goog.storage.mechanism.mechanismfactory.create))
 
@@ -78,6 +86,11 @@
                                                         :minTickSize 1
                                                         :tickFormatter (comp str int)
                                                         :color 1}}}
+                      :geo {:node-name "listener-map"
+                            :url "http://otile{s}.mqcdn.com/tiles/1.0.0/osm/{z}/{x}/{y}.png"
+                            :options {:subdomains "1234",
+                                      :attribution "&copy; <a href='http://www.openstreetmap.org/'>OpenStreetMap</a> <a href='http://www.openstreetmap.org/copyright' title='ODbL'>open license</a>. <a href='http://www.mapquest.com/'>MapQuest</a> <img src='http://developer.mapquest.com/content/osm/mq_logo.png'>"}
+                            :connections {}}
                       :schedule {:data []
                                  :timeout 30000
                                  :now "Checking..."}
@@ -168,9 +181,11 @@
       "Nobody (Random Archives)")))
 
 
+
 (defn update-scheduled-now
   [old-app-state {:keys [current]}]
   (assoc-in old-app-state [:schedule :now] (-> current last get-currently-scheduled)))
+
 
 (defn scheduled-now-view
   [{:keys [data timeout now]}  owner]
@@ -180,7 +195,7 @@
       [_]
       (let [c (chan)]
         (go (while true
-              (swap! app-state update-scheduled-now data)
+              (swap! app-state update-scheduled-now)
               (<! (async/timeout timeout))))))
     om/IRenderState
     (render-state
@@ -341,14 +356,65 @@
 
 
 
+
+(defn geo-map
+  "node-name is the name for the DOM node of the map"
+  [{:keys [node-name connections options url]} owner]
+  (reify
+    om/IInitState
+    (init-state [_]
+      {:geo-map nil
+       :markers {}})
+    om/IDidMount
+    (did-mount [this]
+      (let [m (-> L
+                  (.map node-name)
+                  (.setView (clj->js [30, 0]) 1))]
+        (-> L
+            (.tileLayer  url (clj->js options))
+            (.addTo m))
+        (om/set-state! owner :geo-map m)))
+    om/IDidUpdate
+    (did-update [this prev-props {:keys [geo-map markers] :as prev-state}]
+      (let [old-conns (:connections prev-props)]
+        (when (not=  old-conns connections)
+          ;;(println "changed" old-conns "--->" connections)
+          (let [new-connections (into {} (select-keys connections (apply disj (-> connections keys set)
+                                                                         (keys old-conns))))
+                new-markers (into {}
+                                  (for [[k {:keys [lat lng city region country]}] new-connections]
+                                    [k (-> L
+                                           (.marker  (L.latLng lat lng))
+                                           (.addTo geo-map)
+                                           (.bindPopup (goog.string.format "<b>%s</b><br />%s, %s"
+                                                                           city region country)))]))
+                dead-marker-keys (apply disj (-> old-conns keys set) (keys connections))]
+            ;;(println "new markers" new-markers)
+            ;;(js/console.log new-markers)
+            ;; nuke the old ones
+            ;;(println "dead conns" dead-marker-keys)
+            (doseq [k dead-marker-keys]
+              (.removeLayer geo-map (get markers k)))
+            (om/update-state! owner :markers (fn [oms]
+                                               (merge (apply dissoc oms dead-marker-keys)
+                                                      new-markers)))))))
+    om/IRender
+    (render [this]
+      (dom/div #js {:react-key node-name
+                    :ref node-name       
+                    :id node-name}))))
+
+
+
 (defn main-view
-  [{:keys [playing buffer chat schedule]} owner]
+  [{:keys [playing buffer chat schedule geo]} owner]
   (reify
     om/IWillMount
     (will-mount [_]
       (let [rfn #(do
                    (debug "sending chsk from anon fn")
                    (debug (chsk-send! [:djdash/now-playing {:cmd :refresh}]))
+                   (debug (chsk-send! [:djdash/geo {:cmd :refresh}]))
                    (debug (chsk-send! [:djdash/schedule {:cmd :refresh}])))]
         (when (:open? @chsk-state)
           (debug "sending chsk sched early, at mount")
@@ -373,11 +439,16 @@
                         (dom/div #js {:className "col-md-8"}
                                  (om/build flot buffer)))
                (dom/div #js {:className "row"}
+                        (dom/div #js {:className "col-md-2 text-label"}
+                                 "Listeners Map")
+                        (dom/div #js {:className "col-md-8"}
+                                 (om/build geo-map geo)))
+               (dom/div #js {:className "row"}
                         (dom/div #js {:className "col-md-2"}
                                  (dom/div #js {:className "text-label"}
-                                          "Who's scheduled now?")
-                                 )                        (dom/div #js {:className "col-md-8"}
-                                                                   (om/build scheduled-now-view schedule)))
+                                          "Who's scheduled now?"))
+                        (dom/div #js {:className "col-md-8"}
+                                 (om/build scheduled-now-view schedule)))
                (dom/div #js {:className "row"}
                         (dom/div #js {:className "col-md-2"}
                                  (dom/div #js {:className "text-label"}
@@ -412,10 +483,12 @@
   [[id msg]]
   (case id
     :djdash/buffer (swap! app-state update-in [:buffer :data 0] conj  (format-buffer msg))
+    :djdash/new-geos (swap! app-state (fn [o] (assoc-in o [:geo :connections] msg)))
     :djdash/now-playing (swap! app-state (fn [o]
                                            (let [{:keys [listeners playing] :as new-data} msg]
                                              (-> o
-                                                 (update-in  [:playing] merge  new-data)
+                                                 (update-in [:playing] merge
+                                                            (select-keys new-data [:listeners :playing]))
                                                  (assoc-in  [:playing :live?] (live? playing))
                                                  (update-in  [:playing :data 0] conj [(js/Date.now)
                                                                                       listeners])))))
@@ -423,7 +496,7 @@
                                           (-> o
                                               (assoc-in [:schedule :data] msg)
                                               (update-scheduled-now msg))))
-    (js/console.log "unknown message type")))
+    (error "unknown message type")))
 
 
 
@@ -479,7 +552,6 @@
   
   (taoensso.timbre/info "test")
 
-  (chsk-send! [:djdash/testsend {:testkey "testdata"}])
 
   (chsk-send! [:djdash/schedule {:cmd :refresh}])
   
@@ -491,11 +563,19 @@
   ;; do this on a timer, with a go loop, every minute maybe?
   ;; create a view for it.
 
+  (-> @app-state :schedule :data :current last get-currently-scheduled)
+
+  (-> @app-state :schedule :now)
   
+
+  (println @app-state)
   (->> @app-state :playing :playing)
 
   (dispatch-message  [:djdash/now-playing {:playing "[LIVE!] some test"
                                            :listeners 1}])
+
+
+  (-> @app-state :geo :connections)
   
   )
 

@@ -4,8 +4,10 @@
             [clojure.tools.namespace.repl :as trepl]
             [com.stuartsierra.component :as component]
             [io.aviso.ansi :as ansi]
+            [djdash.geolocate :as geo]
             [clojure.edn :as edn]
             [taoensso.timbre :as log]
+            [djdash.memdb :as db]
             [djdash.server :as srv]
             [djdash.tail :as tail]
             [djdash.schedule :as schedule]
@@ -18,12 +20,14 @@
 
 
 (defn make-system
-  [{:keys [timbre tailer web-server scheduler hubzilla now-playing]}]
+  [{:keys [timbre tailer web-server db geo scheduler hubzilla now-playing]}]
   ;; TODO: hack! just use schema
-  {:pre  [(every? identity (map map? [timbre tailer hubzilla scheduler now-playing web-server]))]} 
+  {:pre  [(every? identity (map map? [timbre db tailer hubzilla scheduler now-playing geo web-server]))]} 
   (component/system-map
    :log (dlog/start-log timbre)
    :tailer (tail/create-tailer tailer)
+   :db   (db/create-memdb db)
+   :geo   (geo/create-geo geo)
    :nowplaying (nowplaying/create-nowplaying now-playing hubzilla)
    :scheduler (schedule/create-scheduler scheduler)
    :web-server (srv/start-server web-server)))
