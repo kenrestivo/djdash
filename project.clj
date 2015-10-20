@@ -72,6 +72,7 @@
                                                                :non-standard-jsdoc :off}
                                             :source-map  "resources/public/js/djdash.js.map"
                                             :externs ["react/externs/react.js"
+                                                      "externs/leaflet-src.js"
                                                       "resources/public/js/jquery.min.js"
                                                       "resources/public/js/jquery.flot.time.min.js"
                                                       "resources/public/js/jquery.flot.min.js"]}}}}
