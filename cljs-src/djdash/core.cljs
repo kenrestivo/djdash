@@ -185,7 +185,7 @@
 (defn update-scheduled-now
   [old-app-state]
   (assoc-in old-app-state [:schedule :now]
-            (-> old-app-state :schedule :current last get-currently-scheduled)))
+            (-> old-app-state :schedule :data :current last get-currently-scheduled)))
 
 
 (defn scheduled-now-view
