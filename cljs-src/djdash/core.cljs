@@ -91,7 +91,7 @@
                             :options {:subdomains "1234",
                                       :attribution "&copy; <a href='http://www.openstreetmap.org/'>OpenStreetMap</a> <a href='http://www.openstreetmap.org/copyright' title='ODbL'>open license</a>. <a href='http://www.mapquest.com/'>MapQuest</a> <img src='http://developer.mapquest.com/content/osm/mq_logo.png'>"}
                             :connections {}}
-                      :schedule {:data []
+                      :schedule {:data {}
                                  :timeout 30000
                                  :now "Checking..."}
                       :buffer {:node-name "buffer-chart"
@@ -195,7 +195,7 @@
       [_]
       (let [c (chan)]
         (go (while true
-              (swap! app-state update-scheduled-now)
+              (swap! app-state update-scheduled-now data)
               (<! (async/timeout timeout))))))
     om/IRenderState
     (render-state
