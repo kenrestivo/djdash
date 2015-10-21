@@ -61,7 +61,9 @@
 
 (defn read-data*
   [path]
-  (some-> path slurp edn/read-string))
+  ;; TODO: try/catch for missing file, create it if missing, and throw if it can't be created/read/written
+    (some-> path slurp edn/read-string))
+
 
 (defn read-data
   [path]
