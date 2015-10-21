@@ -25,8 +25,7 @@
            [goog Uri]))
 
 
-;; BIZARRE! sente DOES NOT WORK without this set to DEBUG!!! if you set it to info, sente fails.
-(taoensso.timbre/set-level! :debug)
+(taoensso.timbre/set-level! :info)
 
 
 (comment
@@ -412,9 +411,9 @@
     (will-mount [_]
       (let [rfn #(do
                    (debug "sending chsk from anon fn")
-                   (debug (chsk-send! [:djdash/now-playing {:cmd :refresh}]))
-                   (debug (chsk-send! [:djdash/geo {:cmd :refresh}]))
-                   (debug (chsk-send! [:djdash/schedule {:cmd :refresh}])))]
+                   (chsk-send! [:djdash/now-playing {:cmd :refresh}])
+                   (chsk-send! [:djdash/geo {:cmd :refresh}])
+                   (chsk-send! [:djdash/schedule {:cmd :refresh}]))]
         (when (:open? @chsk-state)
           (debug "sending chsk sched early, at mount")
           (rfn))
