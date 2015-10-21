@@ -183,8 +183,9 @@
 
 
 (defn update-scheduled-now
-  [old-app-state {:keys [current]}]
-  (assoc-in old-app-state [:schedule :now] (-> current last get-currently-scheduled)))
+  [old-app-state]
+  (assoc-in old-app-state [:schedule :now]
+            (-> old-app-state :schedule :current last get-currently-scheduled)))
 
 
 (defn scheduled-now-view
@@ -193,10 +194,9 @@
     om/IWillMount
     (will-mount
       [_]
-      (let [c (chan)]
-        (go (while true
-              (swap! app-state update-scheduled-now data)
-              (<! (async/timeout timeout))))))
+      (go (while true
+            (swap! app-state update-scheduled-now)
+            (<! (async/timeout timeout)))))
     om/IRenderState
     (render-state
       [_ s]
@@ -289,11 +289,10 @@
     om/IWillMount
     (will-mount
       [_]
-      (let [c (chan)]
-        (go (while true
-              ;; TODO: the message to send!
-              (update-chat! "")
-              (<! (async/timeout timeout))))))
+      (go (while true
+            ;; TODO: the message to send!
+            (update-chat! "")
+            (<! (async/timeout timeout)))))
     om/IDidMount
     (did-mount
       [_]
@@ -495,7 +494,7 @@
     :djdash/next-shows (swap! app-state (fn [o]
                                           (-> o
                                               (assoc-in [:schedule :data] msg)
-                                              (update-scheduled-now msg))))
+                                              update-scheduled-now)))
     (error "unknown message type")))
 
 
@@ -576,7 +575,15 @@
 
 
   (-> @app-state :geo :connections)
+
+  (-> @app-state :schedule :data :current last get-currently-scheduled)
+
+  (swap! app-state update-scheduled-now)
+
+  (-> @app-state :schedule :now)
+
+
+  (println @app-state)
   
   )
 
- 2
