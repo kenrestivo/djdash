@@ -145,7 +145,7 @@
     (did-mount [_]
       (info timeout)
       (go (while true
-            (info "updating listeners")
+            (debug "updating listeners")
             (swap! app-state update-listeners)
             (<! (async/timeout timeout)))))
     om/IRenderState
@@ -579,3 +579,4 @@
   
   )
 
+ 2

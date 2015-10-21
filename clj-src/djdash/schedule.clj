@@ -190,7 +190,7 @@
 
 
 (defn watch-schedule-fn
-  [sente ical-file next-up-file]
+  [sente ical-file next-up-file json-schedule-file]
   (fn [k r o n]
     (let [old-future (-> o :future first)
           new-future (-> n :future first)]
@@ -207,6 +207,13 @@
               (catch Exception e
                 (log/error e))))
           (try 
+            (->> n
+                 :future
+                 json/encode
+                 (spit json-schedule-file))
+            (catch Exception e
+              (log/error e)))
+          (try 
             (->> new-future
                  json/encode
                  fake-jsonp
@@ -219,14 +226,14 @@
 
 
 (defn start-scheduler
-  [{:keys [url check-delay ical-file up-next-file]} sente]
+  [{:keys [url check-delay ical-file up-next-file json-schedule-file]} sente]
   ;; TODO: make this an agent not an atom, and send-off it
   (let [schedule (agent  {:current []
                           :future []
                           :last-started nil}
                          :error-handler #(log/error %))]
     (set-validator! schedule map?)
-    (add-watch schedule :djdash/update (watch-schedule-fn sente ical-file up-next-file))
+    (add-watch schedule :djdash/update (watch-schedule-fn sente ical-file up-next-file json-schedule-file))
     (log/debug "start-scheduler called")
     {:check-thread (start-checker schedule sente url check-delay)
      :schedule schedule}))

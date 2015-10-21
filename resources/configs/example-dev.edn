@@ -25,6 +25,7 @@
  :scheduler {:url "http://localhost/schedule-test/week-info"
              :ical-file "/home/www/spazradio.ics"
              :up-next-file "/home/www/up-next"
+             :json-schedule-file "/home/www/spazradio.json"
              :check-delay 60000}
  :web-server {:mode :dev
               :port 8080

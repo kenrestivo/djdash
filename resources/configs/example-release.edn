@@ -22,6 +22,7 @@
        :url "http://api.ipinfodb.com/v3/ip-city/"}
  :scheduler {:url "http://radio.spaz.org/api/week-info"
              :ical-file "/home/streams/spazradio.ics"
+             :json-schedule-file "/home/streams/spazradio.json"
              :up-next-file "/home/streams/up-next"
              :check-delay 10000}
  :web-server {:port 8080
