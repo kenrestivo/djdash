@@ -1,13 +1,11 @@
 (ns djdash.tail
-  (:require [taoensso.timbre :as log]
-            [clojure.core.async :as async]
-            [djdash.utils :as utils]
+  (:require [clojure.java.io :as jio]
             [clojure.string :as s]
             [com.stuartsierra.component :as component]
-            [clojure.java.io :as jio])
-  (:import [org.apache.commons.io.input TailerListenerAdapter Tailer]
-           java.util.concurrent.ConcurrentLinkedQueue)
-  )
+            [djdash.utils :as utils]
+            [taoensso.timbre :as log])
+  (:import (java.util.concurrent ConcurrentLinkedQueue)
+           (org.apache.commons.io.input Tailer TailerListenerAdapter)))
 
 
 (defn start-tailer

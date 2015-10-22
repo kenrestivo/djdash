@@ -1,5 +1,4 @@
-(ns djdash.utils
-  (:require [clojure.string :as string]))
+(ns djdash.utils)
 
 
 (defn broadcast

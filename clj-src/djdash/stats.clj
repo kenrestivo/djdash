@@ -1,16 +1,13 @@
 (ns djdash.stats
-  (:require [clojure.xml :as xml]
-            [clojure.zip :as zip]
-            [utilza.misc :as umisc]
-            [utilza.core :as utilza]
-            [clojure.string :as str]
-            [camel-snake-kebab.core :as convert]
-            [clojure.edn :as edn]
+  (:require [camel-snake-kebab.core :as convert]
             [clj-http.client :as client]
-            [taoensso.timbre :as log]
-            [clojure.tools.trace :as trace]
             [clojure.data.zip.xml :as zx]
-            [clojure.java.io :as io]))
+            [clojure.java.io :as io]
+            [clojure.xml :as xml]
+            [clojure.zip :as zip]
+            [taoensso.timbre :as log]
+            [utilza.core :as utilza]
+            [utilza.misc :as umisc]))
 
 
 (def listener-map {:connected #(Long/parseLong %)

@@ -1,19 +1,16 @@
 (ns djdash.schedule
-  (:require  [taoensso.timbre :as log]
-             [com.stuartsierra.component :as component]
-             [cheshire.generate :as jgen]
-             [clojure.core.async :as async]
-             [clj-time.coerce :as coerce]             
-             [clj-time.core :as ctime]
-             [clj-time.format :as fmt]
-             [djdash.utils :as utils]
-             [cheshire.core :as json]
-             [clj-ical.format :as ical]
-             [utilza.misc :as umisc]
-             [clojure.tools.trace :as trace])
-  (:import  java.text.SimpleDateFormat
-            java.util.Locale
-            java.util.TimeZone))
+  (:require [cheshire.core :as json]
+            [cheshire.generate :as jgen]
+            [clj-ical.format :as ical]
+            [clj-time.coerce :as coerce]
+            [clj-time.format :as fmt]
+            [clojure.core.async :as async]
+            [com.stuartsierra.component :as component]
+            [djdash.utils :as utils]
+            [taoensso.timbre :as log]
+            [utilza.misc :as umisc])
+  (:import (java.text SimpleDateFormat)
+           (java.util Locale TimeZone)))
 
 
 (jgen/add-encoder  java.util.Date
@@ -330,3 +327,4 @@
 
   
   )
+

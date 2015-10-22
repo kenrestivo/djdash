@@ -1,29 +1,15 @@
 (ns djdash.nowplaying
-  (:require  [taoensso.timbre :as log]
-             [com.stuartsierra.component :as component]
-             [cheshire.generate :as jgen]
-             [net.cgrand.enlive-html :as enlive]
-             [clojure.java.io :as io]
-             [djdash.stats :as stats]
-             [clojure.string :as str]
-             [utilza.enlive :as unlive]
-             [utilza.file :as ufile]
-             [clj-http.client :as client]
-             [clojure.core.async :as async]
-             [clj-time.coerce :as coerce]
-             [me.raynes.conch :as sh]
-             [clj-time.core :as ctime]
-             [clj-time.format :as fmt]
-             [djdash.utils :as utils]
-             [cheshire.core :as json]
-             [clj-ical.format :as ical]
-             [utilza.misc :as umisc]
-             [clojure.tools.trace :as trace])
-  (:import (java.net Socket)
-           (java.io PrintWriter InputStreamReader BufferedReader)
-           java.text.SimpleDateFormat
-           java.util.Locale
-           java.util.TimeZone))
+  (:require [cheshire.core :as json]
+            [clojure.core.async :as async]
+            [clojure.string :as str]
+            [com.stuartsierra.component :as component]
+            [djdash.stats :as stats]
+            [djdash.utils :as utils]
+            [net.cgrand.enlive-html :as enlive]
+            [taoensso.timbre :as log]
+            [utilza.file :as ufile])
+  (:import (java.io BufferedReader InputStreamReader PrintWriter)
+           (java.net Socket)))
 
 
 (def keys-triggering-broadcast [:playing :listeners])
@@ -104,31 +90,6 @@
 
 
 
-;; TODO: have some hysteresis here. put it in a one-member queue channel, wait for a timeout, only send if it times out?
-(defn  post-to-hubzilla*
-  [{:keys [url login pw channel listen]} playing]
-  (log/trace "sending to hubzilla")
-  (let [{:keys [body headers]}
-        (client/post url
-                     {:basic-auth [login pw]
-                      :throw-entire-message? true
-                      :as :json
-                      :form-params {:title "Now Playing"
-                                    :status (format "%s \nListen here: %s"
-                                                    playing listen)}})]
-    (log/trace "sent to hubzilla" body  " --> " headers)))
-
-
-(defn post-to-hubzilla
-  [h o n]
-  (log/trace "checking if now playing changed")
-  (when (and (apply not= (map :playing [o n]))
-             (not= "Checking..." (:playing o))
-             (-> o :playing empty? not))
-    (log/trace o n)
-    (future (post-to-hubzilla* h (:playing n)))))
-
-
 
 (defn nowplaying-listen-loop
   [{:keys [chsk-send! recv-pub]} {:keys [nowplaying]}]
@@ -157,6 +118,18 @@
   [s]
   (str "update_meta(\n" s "\n);"))
 
+
+(defn post-to-hubzilla
+  [h o n]
+  (log/trace "hubzilla checking if now playing changed" o n)
+  (try 
+    (when (and (apply not= (map :playing [o n]))
+               (not= "Checking..." (:playing o))
+               (-> o :playing empty? not))
+      (log/trace "looks like it did change" o n)
+      (when h (async/>!! h (:playing n))))
+    (catch Exception e
+      (log/error e))))
 
 
 (defn watch-nowplaying-fn
@@ -258,7 +231,7 @@
       (let [nowplaying-internal (start-nowplaying (:settings this)
                                                   (-> this :web-server :sente)
                                                   (-> this :geo :request-ch)
-                                                  hubzilla)
+                                                  (-> this :hubzilla :request-ch))
             listen-loop (nowplaying-listen-loop (-> this :web-server :sente) nowplaying-internal)]
         (log/debug "start-nowplaying and nowplaying-listen-loop returned")
         (assoc this :nowplaying-internal (merge nowplaying-internal
@@ -276,13 +249,12 @@
 
 
 (defn create-nowplaying
-  [settings hubzilla]
+  [settings]
   ;; TODO: verify all the settings are there and correct
-  (log/info "nowplaying " settings hubzilla)
+  (log/info "nowplaying " settings)
   (component/using
-   (map->Nowplaying {:settings settings
-                     :hubzilla hubzilla})
-   [:log :geo :web-server]))
+   (map->Nowplaying {:settings settings})
+   [:log :geo :web-server :hubzilla]))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -307,16 +279,6 @@
   
   (log/set-level! :trace)
 
-
-  
-
-  (post-to-hubzilla*  (->> @sys/system :nowplaying :hubzilla)
-                      (->> @sys/system
-                           :nowplaying
-                           :nowplaying-internal
-                           :nowplaying
-                           deref
-                           :playing))
 
 
 

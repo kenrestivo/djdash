@@ -1,15 +1,13 @@
 (ns djdash.geolocate
-  (:require  [taoensso.timbre :as log]
-             [clojure.string :as str]
-             [com.stuartsierra.component :as component]
-             [clj-http.client :as client]
-             [djdash.utils :as utils]
-             [djdash.stats :as stats]
-             [utilza.misc :as umisc]
-             [utilza.core :as utilza]
-             [utilza.memdb.utils :as memutils]
-             [clojure.core.async :as async]
-             [clojure.tools.trace :as trace]))
+  (:require [clj-http.client :as client]
+            [clojure.core.async :as async]
+            [com.stuartsierra.component :as component]
+            [djdash.stats :as stats]
+            [djdash.utils :as utils]
+            [taoensso.timbre :as log]
+            [utilza.core :as utilza]
+            [utilza.memdb.utils :as memutils]
+            [utilza.misc :as umisc]))
 
 (def geo-keymap {:cityName :city
                  :countryName :country

@@ -49,7 +49,8 @@
                                     "resources/public/js/release/"]
   :profiles {:dev {:repl-options {:nrepl-middleware [cemerick.piggieback/wrap-cljs-repl]}}
              :uberjar {:prep-tasks [["cljsbuild" "once" "release"] "javac" "compile"]}
-             :repl {:injections [(do
+             :repl {:timeout 180000
+                    :injections [(do
                                    (require 'djdash.core)
                                    (djdash.core/-main))
                                  ]}}
@@ -78,6 +79,7 @@
                                                       "resources/public/js/jquery.flot.min.js"]}}}}
   :aliases {"tr" ["with-profile" "+user,+dev,+server"
                   "pdo" "cljsbuild" "once" "dev," "trampoline" "repl" ":headless"]
+            "slamhound" ["run" "-m" "slam.hound" "clj-src/"]
             "devbuild" ["cljsbuild" "auto" "dev"]})
 
 

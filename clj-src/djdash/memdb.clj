@@ -1,12 +1,9 @@
 (ns djdash.memdb
-  (:import java.io.File)
-  (:require  [clojure.string :as str]
-             [com.stuartsierra.component :as component]
-             [clojure.edn :as edn]
-             [clojure.core.async :as async]
-             [taoensso.timbre :as log]
-             [clojure.tools.trace :as trace]
-             [clojure.java.io :as io]))
+  (:require [clojure.core.async :as async]
+            [clojure.edn :as edn]
+            [com.stuartsierra.component :as component]
+            [taoensso.timbre :as log])
+  (:import (java.io File)))
 
 
 

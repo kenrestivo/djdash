@@ -1,12 +1,10 @@
 (ns djdash.web
-  (:require [taoensso.timbre :as log]
-            [stencil.core :as stencil]
+  (:require [compojure.core :as compojure]
             [compojure.handler :as handler]
-            [compojure.route :as route]
-            [taoensso.sente :as sente]
-            [compojure.core :as compojure]
+            [ring.middleware.file-info :as file-info]
             [ring.middleware.resource :as res]
-            [ring.middleware.file-info :as file-info]))
+            [stencil.core :as stencil]
+            [taoensso.timbre :as log]))
 
 
 ;; TODO: wrap exceptions that logs them? or are they logged anyway with timbre?

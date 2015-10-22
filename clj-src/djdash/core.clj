@@ -1,18 +1,15 @@
 (ns djdash.core
-  (:require [djdash.log :as dlog]
-            [environ.core :as env]
+  (:require [clojure.edn :as edn]
             [clojure.tools.namespace.repl :as trepl]
             [com.stuartsierra.component :as component]
-            [io.aviso.ansi :as ansi]
             [djdash.geolocate :as geo]
-            [clojure.edn :as edn]
-            [taoensso.timbre :as log]
+            [djdash.log :as dlog]
             [djdash.memdb :as db]
-            [djdash.server :as srv]
-            [djdash.tail :as tail]
-            [djdash.schedule :as schedule]
+            [djdash.hubzilla :as hubzilla]
             [djdash.nowplaying :as nowplaying]
-            [clojure.tools.trace :as trace])
+            [djdash.schedule :as schedule]
+            [djdash.server :as srv]
+            [djdash.tail :as tail])
   (:gen-class))
 
 
@@ -28,7 +25,8 @@
    :tailer (tail/create-tailer tailer)
    :db   (db/create-memdb db)
    :geo   (geo/create-geo geo)
-   :nowplaying (nowplaying/create-nowplaying now-playing hubzilla)
+   :hubzilla   (hubzilla/create-hubzilla hubzilla)
+   :nowplaying (nowplaying/create-nowplaying now-playing)
    :scheduler (schedule/create-scheduler scheduler)
    :web-server (srv/start-server web-server)))
 

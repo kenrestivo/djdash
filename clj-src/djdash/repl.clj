@@ -1,6 +1,4 @@
-(ns djdash.repl
-  (:require weasel.repl.websocket
-            cemerick.piggieback))
+(ns djdash.repl)
 
 (comment
   ;; This whole NS will need a place to live,

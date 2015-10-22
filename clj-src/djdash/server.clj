@@ -1,11 +1,11 @@
 (ns djdash.server
-  (:require [taoensso.timbre :as log]
-            [djdash.web :as web]
-            [taoensso.sente :as sente]
-            [clojure.core.async :as async]
-            [taoensso.sente.server-adapters.http-kit :as skit]
+  (:require [clojure.core.async :as async]
             [com.stuartsierra.component :as component]
-            [org.httpkit.server :as kit]))
+            [djdash.web :as web]
+            [org.httpkit.server :as kit]
+            [taoensso.sente :as sente]
+            [taoensso.sente.server-adapters.http-kit :as skit]
+            [taoensso.timbre :as log]))
 
 
 

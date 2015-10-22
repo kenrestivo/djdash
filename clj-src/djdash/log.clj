@@ -1,8 +1,8 @@
 (ns djdash.log
-  (:require [taoensso.timbre :as log]
-            [taoensso.timbre.appenders.core :as appenders]
-            [com.stuartsierra.component :as component]
-            [clojure.tools.trace :as trace]))
+  (:require [com.stuartsierra.component :as component]
+            [taoensso.timbre :as log]
+            [clojure.tools.trace :as trace]
+            [taoensso.timbre.appenders.core :as appenders]))
 
 
 
