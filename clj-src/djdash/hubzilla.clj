@@ -1,29 +1,8 @@
 (ns djdash.hubzilla
-  (:require  [taoensso.timbre :as log]
-             [com.stuartsierra.component :as component]
-             [cheshire.generate :as jgen]
-             [net.cgrand.enlive-html :as enlive]
-             [clojure.java.io :as io]
-             [djdash.stats :as stats]
-             [clojure.string :as str]
-             [utilza.enlive :as unlive]
-             [utilza.file :as ufile]
-             [clj-http.client :as client]
-             [clojure.core.async :as async]
-             [clj-time.coerce :as coerce]
-             [me.raynes.conch :as sh]
-             [clj-time.core :as ctime]
-             [clj-time.format :as fmt]
-             [djdash.utils :as utils]
-             [cheshire.core :as json]
-             [clj-ical.format :as ical]
-             [utilza.misc :as umisc]
-             [clojure.tools.trace :as trace])
-  (:import (java.net Socket)
-           (java.io PrintWriter InputStreamReader BufferedReader)
-           java.text.SimpleDateFormat
-           java.util.Locale
-           java.util.TimeZone))
+  (:require [clj-http.client :as client]
+            [clojure.core.async :as async]
+            [com.stuartsierra.component :as component]
+            [taoensso.timbre :as log]))
 
 
 (defn  post-to-hubzilla
