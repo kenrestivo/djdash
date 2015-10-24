@@ -66,7 +66,7 @@
 ;; TODO: deal with the entire returned result being "Unknown", it can happen, it should null out
 (defn remove-unknown
   [s]
-  (->  s
+  (some->  s
        (str/replace #" - Unknown" "")
        (str/replace #" - \(null\)" "")
        (str/replace #" - <NULL>" "")))
