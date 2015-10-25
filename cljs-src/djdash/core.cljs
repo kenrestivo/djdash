@@ -418,6 +418,10 @@
           (debug "sending chsk sched early, at mount")
           (rfn))
         (add-watch chsk-state :djdash/login-updates (fn [_ _ o n]
+                                                      (when (and (:open? o) (-> n :open? n))
+														;;TODO when the thing closes, set everything to checking
+                                                        (debug "sente dropped out")
+														)
                                                       (when (and (not (:open? o)) (:open? n))
                                                         (debug "callback chsk sched send")
                                                         (rfn))))))
