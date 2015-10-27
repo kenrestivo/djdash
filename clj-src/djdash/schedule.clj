@@ -127,6 +127,7 @@
           new-last-started (-> current last :start_timestamp)]
       (-> (or (some->> url fetch-schedule  (split-by-current d))
               new-sched)
+          (update-in [:current] #(-> % last vector)) ;; don't need to keep all the old currents!
           (assoc :last-started new-last-started)))))
 
 
@@ -282,7 +283,7 @@
   (do
     (swap! sys/system component/stop-system [:scheduler])
     (swap! sys/system component/start-system [:scheduler])
-    )  
+    )
 
   (log/error (.getCause *e))
   
@@ -325,6 +326,8 @@
        (urepl/massive-spew "/tmp/foo.edn"))
 
 
-  
+
+
+
   )
 
