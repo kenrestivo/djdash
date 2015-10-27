@@ -92,7 +92,7 @@
                             :connections {}}
                       :schedule {:data {}
                                  :timeout 30000
-                                 :now "Checking..."}
+                                 :now (:checking strs)}
                       :buffer {:node-name "buffer-chart"
                                :data [[]] ;; important to have that empty first series
                                :chart-options {:xaxis {:mode "time"
@@ -417,14 +417,21 @@
         (when (:open? @chsk-state)
           (debug "sending chsk sched early, at mount")
           (rfn))
-        (add-watch chsk-state :djdash/login-updates (fn [_ _ o n]
-                                                      (when (and (:open? o) (-> n :open? n))
-														;;TODO when the thing closes, set everything to checking
-                                                        (debug "sente dropped out")
-														)
-                                                      (when (and (not (:open? o)) (:open? n))
-                                                        (debug "callback chsk sched send")
-                                                        (rfn))))))
+        (add-watch chsk-state :djdash/login-updates
+                   (fn [_ _ o n]
+                     (when (and (not (:open? o)) (:open? n))
+                       (debug "callback chsk sched send")
+                       (rfn))))
+        (add-watch chsk-state :djdash/disconnect
+                   (fn [_ _ o n]
+                     (when (and (:open? o) (-> n :open? not))
+                       (debug "sente dropped out")
+                       (swap! app-state
+                              (fn [s]
+                                (-> s            
+                                    (assoc-in [:playing :playing] (:checking strs))
+                                    (assoc-in [:playing :listeners] (:checking strs))
+                                    (assoc-in [:schedule :now] (:checking strs))))))))))
     om/IRenderState
     (render-state [_ s]
       (dom/div #js {:id "annoying-placeholder"} ;; annoying               
