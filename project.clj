@@ -49,7 +49,10 @@
                                     "resources/public/js/release/"]
   :profiles {:dev {:repl-options {:nrepl-middleware [cemerick.piggieback/wrap-cljs-repl]}}
              :uberjar {:prep-tasks [["cljsbuild" "once" "release"] "javac" "compile"]}
-			:release {:jvm-opts ["-XX:-OmitStackTraceInFastThrow" "-Xms1g" "-Xmx1g"]}
+             :release {:jvm-opts ["-XX:-OmitStackTraceInFastThrow"
+                                  "-Xms1g"
+                                  "-Xmx1g"
+                                  "-XX:MaxMetaspaceSize=128m"]}
              :repl {:timeout 180000
                     :injections [(do
                                    (require 'djdash.core)
