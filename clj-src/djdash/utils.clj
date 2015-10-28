@@ -1,4 +1,5 @@
-(ns djdash.utils)
+(ns djdash.utils
+  (:require [utilza.java :as ujava]))
 
 
 (defn broadcast
@@ -12,3 +13,10 @@
   [system k data]
   (broadcast (-> system :web-server :sente) k data))
 
+
+
+(defn revision-info
+  "Utility for determing the program's revision."
+  []
+  (let [{:keys [version revision]} (ujava/get-project-properties "djdash" "djdash")]
+    (format "Version: %s, Revision %s" version revision)))

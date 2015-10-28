@@ -1,6 +1,7 @@
 (ns djdash.log
   (:require [com.stuartsierra.component :as component]
             [taoensso.timbre :as log]
+            [djdash.utils :as utils]
             [clojure.tools.trace :as trace]
             [taoensso.timbre.appenders.core :as appenders]))
 
@@ -23,6 +24,7 @@
         (alter-var-root #'clojure.tools.trace/tracer (fn [_]
                                                        (fn [name value]
                                                          (log/debug name value))))
+        (log/info "Welcome to DJ Dashboard" (utils/revision-info))
         (log/info "logging started" config)
         (assoc this :altered true))))
   (stop [this]
