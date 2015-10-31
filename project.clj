@@ -48,7 +48,9 @@
                                     "resources/public/js/djdash.js.map"
                                     "resources/public/js/release/"]
   :profiles {:dev {:repl-options {:nrepl-middleware [cemerick.piggieback/wrap-cljs-repl]}}
-             :uberjar {:prep-tasks [["cljsbuild" "once" "release"] "javac" "compile"]}
+             :uberjar {:prep-tasks [["cljsbuild" "once" "release"] "javac" "compile"]
+                       :uberjar-name "djdash.jar"
+                       :aot :all}
              :release {:jvm-opts ["-XX:-OmitStackTraceInFastThrow"
                                   "-Xms32m"
                                   "-Xmx512m"
