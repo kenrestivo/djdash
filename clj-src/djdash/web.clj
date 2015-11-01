@@ -19,7 +19,7 @@
   (log/debug "app routes " settings)
   (compojure/routes 
    (compojure/GET  "/ch" req (ring-ajax-get-or-ws-handshake req))
-   (compojure/POST "/ch" req (ring-ajax-post                req))
+   (compojure/POST "/ch" req (ring-ajax-post req))
    (compojure/GET "/" [] (stencil/render-file "templates/index"
                                               {:js-slug (stencil/render-file
                                                          (if (= :dev mode)
