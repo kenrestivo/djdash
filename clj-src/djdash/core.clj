@@ -1,9 +1,10 @@
 (ns djdash.core
-  (:require [clojure.edn :as edn]
-            [clojure.tools.namespace.repl :as trepl]
+  (:require [clojure.tools.namespace.repl :as trepl]
             [com.stuartsierra.component :as component]
             [djdash.geolocate :as geo]
             [djdash.log :as dlog]
+            [schema.core :as s]
+            [djdash.conf :as conf]
             [djdash.memdb :as db]
             [djdash.hubzilla :as hubzilla]
             [djdash.nowplaying :as nowplaying]
@@ -64,9 +65,7 @@
   [& [conf-file-arg & _]]
   (try
     (let [conf-file (or conf-file-arg "config.edn")
-          conf (->> conf-file
-                    slurp
-                    edn/read-string)]
+          conf (conf/read-and-validate conf-file)]
       (println "Starting dashboard components" conf-file conf)
       (go conf))
     (catch Exception e
@@ -86,7 +85,7 @@
   (stop)
   (reset)
 
-  (-main "config.edn")
+  (future (-main "config.edn"))
 
   (future (go env/env))
   
@@ -104,7 +103,7 @@
   (:timbre env/env)
   (go env/env)
 
-
+  (conf/read-and-validate "config.edn")
 
   )
 

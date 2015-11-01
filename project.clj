@@ -7,6 +7,7 @@
                  [weasel "0.7.0" :exclusions [org.clojure/clojurescript]]
                  [cljs-http "0.1.37"]
                  [com.taoensso/sente "1.6.0" :exclusions [com.taoensso/encore]]
+                 [prismatic/schema "1.0.3"]
                  [com.stuartsierra/component "0.3.0"]
                  [org.clojure/data.zip "0.1.1"]
                  [camel-snake-kebab "0.3.2"]
