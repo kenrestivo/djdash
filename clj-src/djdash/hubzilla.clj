@@ -5,7 +5,7 @@
             [taoensso.timbre :as log]))
 
 
-(defn  post-to-hubzilla
+(defn  post-to-hubzilla!
   [{:keys [url login pw channel listen]} playing]
   (when (-> playing empty? not)
     (log/trace "sending to hubzilla" playing)
@@ -20,7 +20,6 @@
       (log/trace "sent to hubzilla" body  " --> " headers))))
 
 
-;; I hate this function with every fiber of my being. This is an unreadable mess.
 (defn start-request-loop
   [{:keys [settings] :as this}]
   {:pre [ (every? (comp not nil?) [settings])]}
@@ -28,27 +27,34 @@
         request-ch (async/chan (async/sliding-buffer 1))]
     (future (try
               (log/info "starting request loop")
-              (loop [malfidato? false
+              (loop [thrash? false
                      timeout timeout-ms
                      prev-playing nil]
-                (let [[playing ch] (async/alts!! [request-ch (async/timeout timeout)])]
-                  (when-not (= playing :quit) ;; end here
-                    (if (= ch request-ch)
-                      ;; request. first we trust it then we don't.
-                      (if-not malfidato? 
-                        (do ;; first request, no changes ina  while, cool, do it.
-                          (post-to-hubzilla settings playing)
-                          ;; don't need to keep prev-playing
-                          (recur true (min (* bump-factor timeout) max-timeout-ms) nil))
-                        (do ;; malfidato! 
-                          (log/trace "bumping timeout, there should be no changes for a while" timeout)
-                          (recur true (min (* bump-factor timeout) max-timeout-ms)  playing)))
-                      ;; it's a timeout
-                      (do 
-                        (when prev-playing (post-to-hubzilla settings prev-playing))
-                        (log/trace "it's a timeout, we've waited, no changes, resetting"
-                                   prev-playing timeout)
-                        (recur false timeout-ms nil))))))
+                (let [[playing ch] (async/alts!! [request-ch (async/timeout timeout)])
+                      req? (= ch request-ch)]
+                  (cond (= playing :quit)  nil;; end here
+                        (and req? (not thrash?)) (do ;; first request, no changes in a while, cool, do it.
+                                                      (post-to-hubzilla! settings playing)
+                                                      ;; trust no further requests after this, until timeout
+                                                      ;; and bump the timeout
+                                                      (recur true (min (* bump-factor timeout) 
+                                                                       max-timeout-ms)
+                                                             ;; don't need to keep prev-playing
+                                                             nil))
+                        ;; thrash! this might be someone thrashing! store it, don't send it to hubzilla yet.
+                        (and req? thrash?) (do 
+                                                (log/trace "thrash. bumping timeout " timeout)
+                                                (recur true (min (* bump-factor timeout) 
+                                                                 max-timeout-ms)  
+                                                       playing))
+                        
+                        :else   ;; it's a timeout. 
+                        (do (when prev-playing 
+                              ;; if something was stored, it's safe to send.
+                              (post-to-hubzilla! settings prev-playing))
+                            (log/trace "it's a timeout, we've waited, no changes, resetting timeout"
+                                       prev-playing timeout)
+                            (recur false timeout-ms nil)))))
               (catch Exception e
                 (log/error e)))
             (log/info "exiting request loop"))
@@ -141,7 +147,7 @@
 
   
 
-  (post-to-hubzilla*  (->> @sys/system :nowplaying :hubzilla)
+  (post-to-hubzilla!  (->> @sys/system :nowplaying :hubzilla)
                       (->> @sys/system
                            :nowplaying
                            :nowplaying-internal
