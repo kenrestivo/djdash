@@ -55,6 +55,7 @@
                                   (post-to-hubzilla! settings prev-playing))
                                 (log/trace "it's a timeout, we've waited, no changes, resetting timeout"
                                            prev-playing timeout)
+                                ;; resetting everything back to defaults for next round
                                 (recur false timeout-ms nil)))))
                   (catch Exception e
                     (log/error e)))
