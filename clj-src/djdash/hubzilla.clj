@@ -47,15 +47,14 @@
                                                (recur true 
                                                       (bump timeout)  
                                                       playing))
-                        
-                        :else   ;; it's a timeout. 
-                        (do (when prev-playing 
-                              ;; if something was stored, it's safe to send.
-                              (post-to-hubzilla! settings prev-playing))
-                            (log/trace "it's a timeout, we've waited, no changes, resetting timeout"
-                                       prev-playing timeout)
-                            ;; resetting everything back to defaults for next round
-                            (recur false timeout-ms nil)))))
+                        ;; it's a timeout. 
+                        (not req?) (do (when prev-playing 
+                                         ;; if something was stored, it's safe to send.
+                                         (post-to-hubzilla! settings prev-playing))
+                                       (log/trace "we've waited, no changes, resetting timeout"
+                                                  prev-playing timeout)
+                                       ;; resetting everything back to defaults for next round
+                                       (recur false timeout-ms nil)))))
               (catch Exception e
                 (log/error e)))
             (log/info "exiting request loop"))
