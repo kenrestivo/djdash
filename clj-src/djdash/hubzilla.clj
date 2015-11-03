@@ -43,11 +43,10 @@
                                                           ;; don't need to keep prev-playing
                                                           nil))
                         ;; thrash! this might be someone thrashing! store it, don't send it to hubzilla yet.
-                        (and req? thrash?) (do 
-                                             (log/trace "thrash. bumping timeout " timeout)
-                                             (recur true 
-                                                    (bump timeout)  
-                                                    playing))
+                        (and req? thrash?) (do (log/trace "thrash. bumping timeout " timeout)
+                                               (recur true 
+                                                      (bump timeout)  
+                                                      playing))
                         
                         :else   ;; it's a timeout. 
                         (do (when prev-playing 
