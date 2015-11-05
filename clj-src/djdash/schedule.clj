@@ -141,6 +141,7 @@
 
 (defn start-checker
   [schedule sente url check-delay]
+  (log/info "starting schedule checker thread")
   (future (while true
             (try
               ;;(log/debug "checking" url)
@@ -172,7 +173,7 @@
         quit-ch (async/chan (async/sliding-buffer 1000))]
     (future (try
               (async/sub recv-pub  :djdash/schedule sente-ch)
-              (log/debug "starting sub for schedule channel")
+              (log/info "starting sub loop for schedule channel")
               (loop []
                 (let [[{:keys [id client-id ?data]} ch] (async/alts!! [quit-ch sente-ch])]
                   (when (= ch sente-ch)
@@ -182,7 +183,7 @@
                     (recur))))
               (catch Exception e
                 (log/error e)))
-            (log/debug "exiting sub for schedule")
+            (log/info "exiting sub loop for schedule")
             (async/unsub recv-pub :djdash/schedule sente-ch))
     quit-ch))
 
@@ -229,6 +230,7 @@
   (let [schedule (agent  {:current []
                           :future []
                           :last-started nil}
+                         :error-mode :continue
                          :error-handler #(log/error %))]
     (set-validator! schedule map?)
     (add-watch schedule :djdash/update (watch-schedule-fn sente ical-file up-next-file json-schedule-file))
