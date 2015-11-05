@@ -1,4 +1,4 @@
-(defproject djdash "0.1.3"
+(defproject djdash "0.1.4"
   :description "Dashboard for SPAZ Radio"
   :url "http://spaz.org/radio"
 
