@@ -62,7 +62,9 @@
                                     "resources/public/js/djdash-min.js"
                                     "resources/public/js/djdash.js.map"
                                     "resources/public/js/release/"]
-  :profiles {:dev {:repl-options {:nrepl-middleware [cemerick.piggieback/wrap-cljs-repl]}}
+  :profiles {:dev {:repl-options {:nrepl-middleware [cemerick.piggieback/wrap-cljs-repl]}
+                   :dependencies [[org.slf4j/log4j-over-slf4j "1.7.12"]
+                                  [org.slf4j/slf4j-simple "1.7.12"]]}
              :uberjar {:prep-tasks [["cljsbuild" "once" "release"] "javac" "compile"]
                        :uberjar-name "djdash.jar"
                        :aot :all}
