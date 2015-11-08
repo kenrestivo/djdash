@@ -32,11 +32,15 @@
 
 (defn get-geo
   [conn ip]
-  (first 
-   (jdbc/query conn 
-               (sql/format {:select [:*]
-                            :from [:geocode]
-                            :where [:= :ip ip]}))))
+  (try
+    (->> {:select [:*]
+          :from [:geocode]
+          :where [:= :ip ip]}
+         sql/format
+         (jdbc/query conn)
+         first)
+    (catch Exception e
+      (log/error e))))
 
 
 
