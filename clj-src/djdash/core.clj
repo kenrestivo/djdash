@@ -5,7 +5,7 @@
             [djdash.log :as dlog]
             [schema.core :as s]
             [djdash.conf :as conf]
-            [djdash.memdb :as db]
+            [djdash.db :as db]
             [djdash.hubzilla :as hubzilla]
             [djdash.nowplaying :as nowplaying]
             [djdash.schedule :as schedule]
@@ -24,12 +24,13 @@
   (component/system-map
    :log (dlog/start-log timbre)
    :tailer (tail/create-tailer tailer)
-   :db   (db/create-memdb db)
+   :db   (db/create-db db)
    :geo   (geo/create-geo geo)
    :hubzilla   (hubzilla/create-hubzilla hubzilla)
    :nowplaying (nowplaying/create-nowplaying now-playing)
    :scheduler (schedule/create-scheduler scheduler)
-   :web-server (srv/start-server web-server)))
+   :web-server (srv/start-server web-server)
+   ))
 
 
 (defn init

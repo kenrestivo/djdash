@@ -75,7 +75,7 @@
   (try
     (component/using
      (map->Server {:settings settings})
-     [:log])
+     [:log]) 
     (catch Exception e
       (println e))))
 

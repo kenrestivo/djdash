@@ -2,6 +2,15 @@
   (:require [schema.core :as s]
             [clojure.edn :as edn]))
 
+
+(def Db
+  {(s/required-key :host)  s/Str
+   (s/required-key :db)  s/Str
+   (s/required-key :user)  s/Str
+   (s/required-key :password)  s/Str
+   (s/required-key :port)  s/Int})
+
+
 (def Conf
   {(s/required-key :tailer) {(s/required-key :fpath) s/Str
                              (s/required-key :bufsiz) s/Int
@@ -26,8 +35,7 @@
    (s/required-key :geo)  {(s/required-key :api-key)  s/Str
                            (s/required-key :ratelimit-delay-ms)  s/Int
                            (s/required-key :url)  s/Str}
-   (s/required-key :db)  {(s/required-key :filename)  s/Str
-                          (s/required-key :autosave-timeout)  s/Int}
+   (s/required-key :db)  Db
    (s/required-key :scheduler)  {(s/required-key :url)  s/Str
                                  (s/required-key :ical-file)  s/Str
                                  (s/required-key :json-schedule-file)  s/Str

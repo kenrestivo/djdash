@@ -116,7 +116,7 @@
   ;; TODO: verify all the settings are there and correct
   (component/using
    (map->Hubzilla {:settings settings})
-   [:log :db :web-server]))
+   [:log :web-server]))
 
 
 

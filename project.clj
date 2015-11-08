@@ -1,47 +1,61 @@
-(defproject djdash "0.1.4"
+(defproject djdash "0.1.5"
   :description "Dashboard for SPAZ Radio"
   :url "http://spaz.org/radio"
 
   :dependencies [[org.clojure/clojure "1.7.0"]
-                 [org.clojure/clojurescript "1.7.122"] 
+                 [org.clojure/clojurescript "1.7.170"] 
                  [weasel "0.7.0" :exclusions [org.clojure/clojurescript]]
                  [cljs-http "0.1.37"]
-                 [com.taoensso/sente "1.6.0" :exclusions [com.taoensso/encore]]
+                 [com.taoensso/sente "1.6.0" :exclusions [io.aviso/pretty com.taoensso/encore]]
                  [prismatic/schema "1.0.3"]
                  [com.stuartsierra/component "0.3.0"]
                  [org.clojure/data.zip "0.1.1"]
                  [camel-snake-kebab "0.3.2"]
                  [enlive "1.1.6"]
                  [compojure "1.4.0"] 
-                 ;; [ankha "0.1.4"] ;; breaks everything :-(g
                  [ring "1.4.0"]
                  [me.raynes/conch "0.8.0"]
+                 [hikari-cp "1.3.1"]
                  [org.clojure/java.jdbc "0.4.2"]
-                 [postgresql "9.1-901-1.jdbc4"]
+                 [org.postgresql/postgresql "9.3-1103-jdbc41"]
+                 [migratus "0.8.7"]
+                 [honeysql "0.6.2"]
                  [environ "1.0.1"]
                  [http-kit "2.1.19"]
-                 [utilza "0.1.69"]
+                 [utilza "0.1.77"]
                  [clj-ical "1.1" :exclusions [clj-time]]
                  [org.clojure/data.xml "0.0.8"]
                  [clj-time "0.11.0"]
-                 [com.taoensso/timbre "4.1.2"]
+                 [com.taoensso/timbre "4.1.4"]
+                 [org.clojure/tools.reader "1.0.0-alpha1"]
                  [cheshire "5.5.0"]
                  [stencil "0.5.0"]
                  [clj-http "2.0.0"]
-                 [com.andrewmcveigh/cljs-time "0.3.13" :exclusions [com.cemerick/austin]]
-                 [org.clojure/tools.trace "0.7.8"]
-                 [org.clojure/core.async "0.1.346.0-17112a-alpha"]
+                 [com.andrewmcveigh/cljs-time "0.3.14" :exclusions [com.cemerick/austin]]
+                 [org.clojure/tools.trace "0.7.9"]
+                 [org.clojure/core.async "0.2.371"]
                  [com.cemerick/piggieback "0.2.1"]
                  [org.omcljs/om "0.9.0"]
                  ]
 
 
   :source-paths ["clj-src"]
-  :plugins [[lein-environ "1.0.0"]
-            [lein-pdo "0.1.1"]
-            [lein-cljsbuild "1.1.0"]]
+  :plugins [[lein-pdo "0.1.1"]
+            [migratus-lein "0.2.0"]
+            [lein-cljsbuild "1.1.1"]]
   ;;:hooks [leiningen.cljsbuild]
   :main djdash.core
+
+  ;; XXX HACK, cough, HACK
+  :migratus ~(let [{:keys [host db user password]} (-> "config.edn" slurp read-string :db)]
+               {:store :database
+                :migration-dir "migrations/"
+                :db {:classname "com.postgresql.Driver"
+                     :subprotocol "postgresql"
+                     :subname (str "//" host "/" db)
+                     :user user
+                     :password password}})
+
   :clean-targets ^{:protect false} [:target-path :compile-path "resources/public/js/dev/"
                                     "resources/public/js/djdash.js"
                                     "resources/public/js/djdash.js.map"

@@ -2,11 +2,14 @@
   (:require [clj-http.client :as client]
             [clojure.core.async :as async]
             [com.stuartsierra.component :as component]
+            [honeysql.helpers :as h]
             [djdash.stats :as stats]
+            [honeysql.core :as sql]
+            [clojure.java.jdbc :as jdbc]
+            [honeysql.core :as sql]
             [djdash.utils :as utils]
             [taoensso.timbre :as log]
             [utilza.core :as utilza]
-            [utilza.memdb.utils :as memutils]
             [utilza.misc :as umisc]))
 
 (def geo-keymap {:cityName :city
@@ -26,6 +29,26 @@
                                 :latitude #(Float/parseFloat %)
                                 :longitude #(Float/parseFloat %)
                                 :countryName umisc/capitalize-words}))
+
+(defn get-geo
+  [conn ip]
+  (first 
+   (jdbc/query conn 
+               (sql/format {:select [:*]
+                            :from [:geocode]
+                            :where [:= :ip ip]}))))
+
+
+
+(defn insert-geo
+  [conn geo]
+  (try
+    (jdbc/execute! conn
+                   (-> (h/insert-into :geocode)
+                       (h/values  [geo])
+                       sql/format))
+    (catch Exception e
+      (log/error e (.getCause *e)))))
 
 
 (defn munge-geo
@@ -70,10 +93,10 @@
 
 
 (defn get-found-deets
-  [deets new-conn-ids  db-agent lookup-ch]
+  [deets new-conn-ids  dbc lookup-ch]
   (->> (for [{:keys [id ip] :as new-conn} deets
              :when (contains? new-conn-ids id)
-             :let [found-geo (get @db-agent ip)]]
+             :let [found-geo (get-geo dbc ip)]] 
          (if (map? found-geo)
            (merge-and-keyify-geo new-conn found-geo)
            (async/>!! lookup-ch new-conn)))
@@ -84,11 +107,11 @@
 
 (defn update-geos
   "NOTE: executes inside a send-off or send agent state"
-  [prev-conns new-deets db-agent lookup-ch]
+  [prev-conns new-deets dbc lookup-ch]
   (let [new-conn-ids (apply disj (->> new-deets (map :id) set)  (keys prev-conns))
         dead-conn-ids (apply disj (-> prev-conns keys set) (->> new-deets (map :id)))]
     (-> (apply dissoc prev-conns dead-conn-ids)
-        (merge (get-found-deets new-deets new-conn-ids db-agent lookup-ch)))))
+        (merge (get-found-deets new-deets new-conn-ids dbc lookup-ch)))))
 
 
 
@@ -106,21 +129,23 @@
 (defn start-request-loop
   "Must start after lookup loop.
    Takes a Geo record. Starts a channel/loop that accepts combined stats from icecast."
-  [{:keys [db-agent conn-agent lookup-ch sente] :as this}]
-  {:pre [ (every? (comp not nil?) [db-agent lookup-ch sente conn-agent])]}
+  [{:keys [dbc conn-agent lookup-ch sente] :as this}]
+  {:pre [ (every? (comp not nil?) [dbc lookup-ch sente conn-agent])]}
   (let [request-ch (async/chan (async/sliding-buffer 5000))]
     (future (try
+              (log/info "starting request loop")
               (loop []
                 (let [combined (async/<!! request-ch)
                       deets (stats/listener-details combined)]
                   (log/trace "got request" combined)
                   (when-not (= (some-> combined :cmd) :quit)
                     (log/trace "updating geos" (doall deets))
-                    (send-off conn-agent update-geos deets db-agent lookup-ch)
+                    (send-off conn-agent update-geos deets dbc lookup-ch)
                     (recur))))
               (catch Exception e
                 (log/error e)))
             (log/debug "exiting request loop"))
+    (log/info "request loop started")
     (-> this
         (assoc  :request-ch request-ch))))
 
@@ -136,24 +161,26 @@
    Throttles requests via :ratelimit-delay-ms in settings.
    If the lookup request has {:cmd :quit}, shuts down the loop.
    Assocs the :lookup-ch into the Geo record."
-  [{:keys [db-agent settings sente conn-agent] :as this}]
-  {:pre [ (every? (comp not nil?) [db-agent conn-agent settings sente])]}
+  [{:keys [dbc settings sente conn-agent] :as this}]
+  {:pre [ (every? (comp not nil?) [dbc conn-agent settings sente])]}
   (let [{:keys [ratelimit-delay-ms url api-key]} settings
         lookup-ch (async/chan (async/sliding-buffer 5000))]
     (future (try
+              (log/info "starting lookup loop")
               (loop []
                 (let [{:keys [ip cmd id] :as m} (async/<!! lookup-ch)]
                   (when-not (= cmd :quit)
                     (log/trace "fetching" m)
                     (let [g (fetch-geo ip url api-key)]
                       (log/trace "lookup loop, fetch returnd " g)
-                      (send-off db-agent (memutils/update-record ip (fn [_] g)))
+                      (insert-geo dbc g)
                       (send-off conn-agent merge (merge-and-keyify-geo m g)))
                     (Thread/sleep ratelimit-delay-ms)
                     (recur))))
               (catch Exception e
                 (log/error e)))
             (log/debug "exiting lookup loop"))
+    (log/info "lookup loop started")
     (-> this
         (assoc  :lookup-ch lookup-ch))))
 
@@ -172,7 +199,7 @@
         quit-ch (async/chan)]
     (async/sub recv-pub  :djdash/geo sente-ch)
     (future (try
-              (log/debug "Starting sub for geo channel")
+              (log/info "Starting sente sub for geo channel")
               (loop []
                 (let [[{:keys [id client-id ?data]} ch] (async/alts!! [quit-ch sente-ch])]
                   (when (= ch sente-ch)
@@ -181,9 +208,10 @@
                     (recur))))
               (catch Exception e
                 (log/error e)))
-            (log/debug "exiting sub for geo")
+            (log/info "exiting sub for geo")
             ;; TODO: should probably close the channels i created too here
             (async/unsub recv-pub :djdash/geo sente-ch))
+    (log/info "sente loop started")
     (assoc this :quit-ch quit-ch)))
 
 
@@ -192,12 +220,13 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn start-geo
-  [{:keys [db-agent settings sente] :as this}]
-  {:pre [ (every? (comp not nil?) [db-agent settings])]}
+  [{:keys [dbc settings sente] :as this}]
+  {:pre [ (every? (comp not nil?) [dbc settings sente])]}
   (let [conn-agent (agent  {}
                            :error-handler #(log/error %))]
     (set-validator! conn-agent map?)
     (add-watch conn-agent :djdash/update (watch-geo-fn sente))
+    (log/info "start-geo")
     (-> this
         (assoc :conn-agent conn-agent)
         start-lookup-loop
@@ -207,7 +236,6 @@
 
 (defn stop-geo
   [{:keys [conn-agent request-ch lookup-ch] :as this}]
-  ;; TODO save data first
   (log/info "stopping geo")
   (async/>!! request-ch {:cmd :quit})
   (async/>!! lookup-ch {:cmd :quit})
@@ -215,23 +243,23 @@
       (assoc  :sente nil)
       (assoc  :request-ch nil)
       (assoc  :lookup-ch nil)
-      (assoc  :db-agent nil)))
+      (assoc  :dbc nil)))
 
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defrecord Geo [settings conn-agent sente lookup-ch request-ch db-agent]
+(defrecord Geo [settings conn-agent sente lookup-ch request-ch dbc]
   component/Lifecycle
   (start
     [this]
     (log/info "starting geo " (:settings this))
-    (if (and conn-agent lookup-ch request-ch db-agent)
+    (if (and conn-agent lookup-ch request-ch dbc)
       this 
       (try
         (-> this
             (assoc :sente (-> this :web-server :sente))
-            (assoc :db-agent (-> this :db :db-agent)) ;; need local ref
+            (assoc :dbc (-> this :db :conn)) ;; need local ref
             start-geo )
         (catch Exception e
           (log/error e)
@@ -240,7 +268,7 @@
   (stop
     [this]
     (log/info "stopping geo " (:settings this))
-    (if-not  (or conn-agent lookup-ch request-ch db-agent)
+    (if-not  (or conn-agent lookup-ch request-ch dbc)
       this
       (do
         (log/debug "branch hit, stopping" this)
@@ -268,6 +296,9 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (comment
 
+
+  (require '[djdash.core :as sys])
+
   (do
     (require '[djdash.core :as sys])
     (require '[utilza.repl :as urepl])
@@ -279,9 +310,11 @@
     (swap! sys/system component/start-system [:geo])
     )
   
-  (->> @sys/system :geo :conn-agent deref)
+  (->> @sys/system :geo  :conn-agent deref)
 
-  (->> @sys/system :db :db-agent deref)
+  (->> @sys/system :db :conn)
+
+  (->> @sys/system :geo  vals (map type))
 
   
   (async/>!! (->> @sys/system :db :cmd-ch) {:cmd :save})
