@@ -47,12 +47,12 @@
   :main djdash.core
 
   ;; XXX HACK, cough, HACK
-  :migratus ~(let [{:keys [host db user password]} (-> "config.edn" slurp read-string :db)]
+  :migratus ~(let [{:keys [host db port user password]} (-> "config.edn" slurp read-string :db)]
                {:store :database
                 :migration-dir "migrations/"
                 :db {:classname "com.postgresql.Driver"
                      :subprotocol "postgresql"
-                     :subname (str "//" host "/" db)
+                     :subname (str "//" host ":" port "/" db)
                      :user user
                      :password password}})
 
