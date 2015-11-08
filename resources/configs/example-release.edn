@@ -18,8 +18,11 @@
                :fake-json-file "/home/streams/playing"
                :fake-jsonp-file "/home/streams/playing-jsonp"
                :port 8050}
- :db {:filename "/mnt/sdcard/tmp/dash.db"
-      :autosave-timeout 600000}
+ :db {:db "djdash"
+      :user "test"
+      :password "test"
+      :host "localhost"
+      :port 5432}
  :geo {:api-key "key-here"
        :ratelimit-delay-ms 500
        :url "http://api.ipinfodb.com/v3/ip-city/"}
