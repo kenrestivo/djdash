@@ -34,11 +34,14 @@
 (defn parse-xml
   "Takes string, returns zipped xml"
   [s]
-  (-> s
-      (.getBytes "utf-8")
-      io/input-stream
-      xml/parse
-      zip/xml-zip))
+  (try
+    (-> s
+        (.getBytes "utf-8")
+        io/input-stream
+        xml/parse
+        zip/xml-zip)
+    (catch Exception e
+      (log/error e s))))
 
 
 (defn xml-nodes-to-map
@@ -97,12 +100,12 @@
 
 (defn get-mounts
   [{:keys [host port adminuser adminpass]}]
-  (->> (client/get (format "http://%s:%d/admin/stats.xml" host port)
-                   {:basic-auth [adminuser adminpass]})
-       :body
-       parse-xml
-       mount-count
-       active-mounts))
+  (some->> (client/get (format "http://%s:%d/admin/stats.xml" host port)
+                       {:basic-auth [adminuser adminpass]})
+           :body
+           parse-xml
+           mount-count
+           active-mounts))
 
 
 (defn eliminate-headers
@@ -133,11 +136,10 @@
 (defn get-combined-stats
   "Takes seq of strings of mounts. Returns all the stats for the mounts as an xml string"
   ([mounts settings]
-     (->> (for [m mounts]
-            (get-stats m settings))
-          (mapcat identity)
-          (utilza/mapify :mount)
-          ))
+     (some->> (for [m mounts]
+                (get-stats m settings))
+              (mapcat identity)
+              (utilza/mapify :mount)))
   ([settings]
      (get-combined-stats (get-mounts settings) settings)))
 
