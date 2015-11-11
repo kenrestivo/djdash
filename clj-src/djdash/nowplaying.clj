@@ -174,10 +174,10 @@
   (log/trace "checking listeners" host port adminuser adminpass song-mount)
   (try
     (if-let [combined (stats/get-combined-stats settings)]
-      ;; send off to geos to deal with
-      (do (async/>!! request-ch combined)
-          (-> olde
-              (assoc :listeners (stats/total-listener-count combined))))
+      (do ;; send off to geos to deal with
+        (async/>!! request-ch combined)
+        (-> olde
+            (assoc :listeners (stats/total-listener-count combined))))
       olde)
     (catch Exception e
       (log/error e)
