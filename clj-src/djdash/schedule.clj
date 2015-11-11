@@ -121,14 +121,14 @@
    which takes the old schedule atom and updates the future/current and last-started,
    and goes out and fetches a new schedule."
   [^java.lang.String url ^java.util.Date d]
-  (fn [{:keys [last-started current future]}]
+  (fn [{:keys [current future]}]
     (let [{:keys [current future] :as new-sched} (->> (concat current future) ;; rejoining for resplitting
-                                                      (split-by-current d))
-          new-last-started (-> current last :start_timestamp)]
+                                                      (split-by-current d))]
       (-> (or (some->> url fetch-schedule  (split-by-current d))
               new-sched)
-          (update-in [:current] #(-> % last vector)) ;; don't need to keep all the old currents!
-          (assoc :last-started new-last-started)))))
+          ;; don't need to keep all the old currents!
+          (update-in [:current] #(-> % last vector))))))
+
 
 
 (defn update-schedule
@@ -228,8 +228,7 @@
   [{:keys [url check-delay ical-file up-next-file json-schedule-file]} sente]
   ;; TODO: make this an agent not an atom, and send-off it
   (let [schedule (agent  {:current []
-                          :future []
-                          :last-started nil}
+                          :future []}
                          :error-mode :continue
                          :error-handler #(log/error %))]
     (set-validator! schedule map?)
@@ -301,8 +300,8 @@
   (->> @sys/system :scheduler :scheduler-internal :schedule deref  (urepl/massive-spew "/tmp/foo.edn"))
   
   (defonce fake-schedule (atom {:current []
-                                :future []
-                                :last-started nil}))
+                                :future []}))
+                                
   
   (->> "http://localhost/schedule-test/week-info"
        (update-schedule fake-schedule )
