@@ -175,7 +175,7 @@
                 (let [{:keys [ip cmd id] :as m} (async/<!! lookup-ch)]
                   (when-not (= cmd :quit)
                     (log/trace "fetching" m)
-                    (let [g (fetch-geo ip url api-key)]
+                    (when-let [g (fetch-geo ip url api-key)]
                       (log/trace "lookup loop, fetch returnd " g)
                       (insert-geo dbc g)
                       (send-off conn-agent merge (merge-and-keyify-geo m g)))
