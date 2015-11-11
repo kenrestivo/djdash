@@ -67,9 +67,9 @@
 (defn remove-unknown
   [s]
   (some->  s
-       (str/replace #" - Unknown" "")
-       (str/replace #" - \(null\)" "")
-       (str/replace #" - <NULL>" "")))
+           (str/replace #" - Unknown" "")
+           (str/replace #" - \(null\)" "")
+           (str/replace #" - <NULL>" "")))
 
 
 (defn get-icecast-playing
@@ -173,7 +173,7 @@
   [olde {:keys [host port adminuser adminpass song-mount] :as settings} request-ch]
   (log/trace "checking listeners" host port adminuser adminpass song-mount)
   (try
-    (let [combined (stats/get-combined-stats settings)]
+    (when-let [combined (stats/get-combined-stats settings)]
       ;; send off to geos to deal with
       (async/>!! request-ch combined)
       (-> olde
