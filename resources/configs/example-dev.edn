@@ -18,6 +18,8 @@
       :host "localhost"
       :port 5432}
  :geo {:api-key "key-here"
+       :max-retries 5
+       :retry-wait 5000
        :ratelimit-delay-ms 500
        :url "http://api.ipinfodb.com/v3/ip-city/"}
  :now-playing {:check-delay 10000

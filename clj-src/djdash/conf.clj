@@ -34,6 +34,8 @@
                                    (s/required-key :port)  s/Int}
    (s/required-key :geo)  {(s/required-key :api-key)  s/Str
                            (s/required-key :ratelimit-delay-ms)  s/Int
+                           (s/required-key :max-retries) s/Int
+                           (s/required-key :retry-wait) s/Int
                            (s/required-key :url)  s/Str}
    (s/required-key :db)  Db
    (s/required-key :scheduler)  {(s/required-key :url)  s/Str

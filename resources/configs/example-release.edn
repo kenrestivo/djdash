@@ -25,6 +25,8 @@
       :port 5432}
  :geo {:api-key "key-here"
        :ratelimit-delay-ms 500
+       :max-retries 5
+       :retry-wait 5000
        :url "http://api.ipinfodb.com/v3/ip-city/"}
  :scheduler {:url "http://radio.spaz.org/api/week-info"
              :ical-file "/home/streams/spazradio.ics"

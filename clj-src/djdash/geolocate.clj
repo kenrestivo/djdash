@@ -30,6 +30,18 @@
                                 :longitude #(Float/parseFloat %)
                                 :countryName umisc/capitalize-words}))
 
+
+(defn make-retry-fn
+  "Retries, with backoff. Logs non-fatal errors as wern, fatal as error"
+  [retry-wait max-retries]
+  (fn retry
+    [ex try-count http-context]
+    (log/warn ex http-context)
+    (Thread/sleep (* try-count retry-wait))
+    (if (> try-count max-retries) 
+      false
+      (log/error ex try-count http-context))))
+
 (defn get-geo
   [conn ip]
   (try
@@ -65,13 +77,14 @@
 
 
 (defn fetch-geo
-  [ip url api-key]
+  [ip url api-key retry-wait max-retries]
   (log/trace "fetching geo from api:" ip)
   (try
     (->> (client/get url {:query-params {:ip ip,
                                          :key api-key
                                          :format "json"}
                           :headers {"Accept" "application/json"}
+                          :retry-handler (make-retry-fn retry-wait max-retries)
                           :as :json})
          :body
          munge-geo)
@@ -167,7 +180,7 @@
    Assocs the :lookup-ch into the Geo record."
   [{:keys [dbc settings sente conn-agent] :as this}]
   {:pre [ (every? (comp not nil?) [dbc conn-agent settings sente])]}
-  (let [{:keys [ratelimit-delay-ms url api-key]} settings
+  (let [{:keys [ratelimit-delay-ms url api-key retry-wait max-retries]} settings
         lookup-ch (async/chan (async/sliding-buffer 5000))]
     (future (try
               (log/info "starting lookup loop")
@@ -175,7 +188,7 @@
                 (let [{:keys [ip cmd id] :as m} (async/<!! lookup-ch)]
                   (when-not (= cmd :quit)
                     (log/trace "fetching" m)
-                    (when-let [g (fetch-geo ip url api-key)]
+                    (when-let [g (fetch-geo ip url api-key retry-wait max-retries)]
                       (log/trace "lookup loop, fetch returnd " g)
                       (insert-geo dbc g)
                       (send-off conn-agent merge (merge-and-keyify-geo m g)))
