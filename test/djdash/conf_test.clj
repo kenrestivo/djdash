@@ -1,6 +1,7 @@
 (ns djdash.conf-test
   (:require [clojure.test :refer :all]
             [utilza.file :as file]
+            [taoensso.timbre :as log]
             [djdash.conf :as conf :refer :all]
             [schema.core :as s]))
 
@@ -32,8 +33,10 @@
                           (testing f)
                           (read-and-validate f))))))
 
-
-  (run-tests)
+  (try
+    (run-tests)
+    (catch Exception e
+      (log/error e)))
 
 
 
