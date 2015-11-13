@@ -108,12 +108,12 @@
                                                                           :to 20000}
                                                                   :color "#F0F710"}
                                                                  {:yaxis {:from 20000
-                                                                          :to 200000}
+                                                                          :to 150000}
                                                                   :color "#077D13"}
                                                                  ]}
                                                :yaxis {:min 0
                                                        :color "rgba(79, 79, 84, 0.5)"
-                                                       :max 200000
+                                                       :max 150000
                                                        :tickFormatter buffer-tick}}}
                       :chat {:url js/chat_url
                              :count (min-chat-stamp)
