@@ -100,15 +100,16 @@
                                                        :minTickSize [2, "minute"]
                                                        :timezone "browser"
                                                        :timeformat "%I:%M%p"}
+                                               :colors ["rgb(19,6,203)"]
                                                :grid {:markings [{:yaxis {:from 0
                                                                           :to 1}
                                                                   :color "#C11B17"}
                                                                  {:yaxis {:from 1
                                                                           :to 20000}
-                                                                  :color "#FDD017"}
+                                                                  :color "#F0F710"}
                                                                  {:yaxis {:from 20000
                                                                           :to 200000}
-                                                                  :color "#1FE615"}
+                                                                  :color "#077D13"}
                                                                  ]}
                                                :yaxis {:min 0
                                                        :color "rgba(79, 79, 84, 0.5)"
