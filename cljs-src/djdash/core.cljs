@@ -100,9 +100,19 @@
                                                        :minTickSize [2, "minute"]
                                                        :timezone "browser"
                                                        :timeformat "%I:%M%p"}
+                                               :grid {:markings [{:yaxis {:from 0
+                                                                          :to 1}
+                                                                  :color "#C11B17"}
+                                                                 {:yaxis {:from 1
+                                                                          :to 20000}
+                                                                  :color "#FDD017"}
+                                                                 {:yaxis {:from 20000
+                                                                          :to 200000}
+                                                                  :color "#1FE615"}
+                                                                 ]}
                                                :yaxis {:min 0
-                                                       :color 2
-                                                       :max 250000
+                                                       :color "rgba(79, 79, 84, 0.5)"
+                                                       :max 200000
                                                        :tickFormatter buffer-tick}}}
                       :chat {:url js/chat_url
                              :count (min-chat-stamp)
