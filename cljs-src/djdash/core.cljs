@@ -102,6 +102,7 @@
                                                        :timeformat "%I:%M%p"}
                                                :yaxis {:min 0
                                                        :color 2
+                                                       :max 250000
                                                        :tickFormatter buffer-tick}}}
                       :chat {:url js/chat_url
                              :count (min-chat-stamp)
