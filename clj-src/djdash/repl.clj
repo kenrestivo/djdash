@@ -1,6 +1,4 @@
-(ns djdash.repl
-(:require cemerick.piggieback
-          weasel.repl.websocket))
+(ns djdash.repl)
 
 (comment
   ;; This whole NS will need a place to live,
@@ -8,7 +6,10 @@
   ;; then it'll cause compilation errors if this is here.
   ;; somehow this ns will need to be condidionally compiled only when in dev mode
 
+  (require '[cemerick.piggieback])
+  (require '[weasel.repl.websocket])
+
   (cemerick.piggieback/cljs-repl
-        (weasel.repl.websocket/repl-env :ip "0.0.0.0" :port 9001))
+   (weasel.repl.websocket/repl-env :ip "0.0.0.0" :port 9001))
   
   )
