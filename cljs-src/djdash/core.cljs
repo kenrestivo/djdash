@@ -494,16 +494,19 @@
  {:target (. js/document (getElementById "content"))})
 
 
-(defn format-buffer
-  [{:keys [min max avg date]}]
-  [date min])
 
 
+(defn update-buffer
+  [app-state {date :date
+              min-val :min}]
+  (update-in app-state [:buffer :data 0] conj 
+             [date (min min-val
+                        (-> app-state :buffer :chart-options :yaxis :max))]))
 
 (defn dispatch-message
   [[id msg]]
   (case id
-    :djdash/buffer (swap! app-state update-in [:buffer :data 0] conj  (format-buffer msg))
+    :djdash/buffer (swap! app-state update-buffer msg)
     :djdash/new-geos (swap! app-state (fn [o] (assoc-in o [:geo :connections] msg)))
     :djdash/now-playing (swap! app-state (fn [o]
                                            (let [{:keys [listeners playing] :as new-data} msg]
@@ -517,7 +520,7 @@
                                           (-> o
                                               (assoc-in [:schedule :data] msg)
                                               update-scheduled-now)))
-    (error "unknown message type")))
+    (error "unknown message type" id msg)))
 
 
 
@@ -543,69 +546,11 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (comment
-  ;; breaks everything :-(
-  ;; a hacky conditional run, if not compile
-  (when-let [target (js/document.getElementById "inspect")]
-    (om/root
-     ankha/inspector
-     app-state
-     {:target target}))
-  )
-
-(comment
 
   (do
     (swap! app-state assoc-in  [:chat :timeout] 120000)
     (swap! app-state assoc-in  [:playing :timeout] 60000))
 
-  
-  (format-time #inst "2015-09-29T03:00:00.000-00:00")
 
-  (-> @app-state :schedule :data)
-
-
-  (apply str (for [{:keys [name start_timestamp end_timestamp]} data]
-               [name (format-time start_timestamp) (format-time end_timestamp)]))
-
-  (timbre/set-level! :trace)
-
-  (taoensso.timbre/set-level! :debug)
-  
-  (taoensso.timbre/info "test")
-
-
-  (chsk-send! [:djdash/schedule {:cmd :refresh}])
-  
-  (chsk-send! [:djdash/now-playing {:cmd :refresh}])
-
-  (println @chsk-state)
-
-  
-  ;; do this on a timer, with a go loop, every minute maybe?
-  ;; create a view for it.
-
-  (-> @app-state :schedule :data :current last get-currently-scheduled)
-
-  (-> @app-state :schedule :now)
-  
-
-  (println @app-state)
-  (->> @app-state :playing :playing)
-
-  (dispatch-message  [:djdash/now-playing {:playing "[LIVE!] some test"
-                                           :listeners 1}])
-
-
-  (-> @app-state :geo :connections)
-
-  (-> @app-state :schedule :data :current last get-currently-scheduled)
-
-  (swap! app-state update-scheduled-now)
-
-  (-> @app-state :schedule :now)
-
-
-  (println @app-state)
-  
   )
 
