@@ -31,16 +31,6 @@
                                 :countryName umisc/capitalize-words}))
 
 
-(defn make-retry-fn
-  "Retries, with backoff. Logs non-fatal errors as wern, fatal as error"
-  [retry-wait max-retries]
-  (fn retry
-    [ex try-count http-context]
-    (log/warn ex http-context)
-    (Thread/sleep (* try-count retry-wait))
-    (if (> try-count max-retries) 
-      false
-      (log/error ex try-count http-context))))
 
 (defn get-geo
   [conn ip]
@@ -84,7 +74,7 @@
                                          :key api-key
                                          :format "json"}
                           :headers {"Accept" "application/json"}
-                          :retry-handler (make-retry-fn retry-wait max-retries)
+                          :retry-handler (utils/make-retry-fn retry-wait max-retries)
                           :as :json})
          :body
          munge-geo)

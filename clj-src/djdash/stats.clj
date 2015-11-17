@@ -2,6 +2,7 @@
   (:require [camel-snake-kebab.core :as convert]
             [clj-http.client :as client]
             [clojure.data.zip.xml :as zx]
+            [djdash.utils :as utils]
             [clojure.java.io :as io]
             [clojure.xml :as xml]
             [clojure.zip :as zip]
@@ -100,12 +101,16 @@
 
 (defn get-mounts
   [{:keys [host port adminuser adminpass]}]
-  (some->> (client/get (format "http://%s:%d/admin/stats.xml" host port)
-                       {:basic-auth [adminuser adminpass]})
-           :body
-           parse-xml
-           mount-count
-           active-mounts))
+  (try
+    (some->> (client/get (format "http://%s:%d/admin/stats.xml" host port)
+                         {:basic-auth [adminuser adminpass]
+                          :retry-handler utils/retry})
+             :body
+             parse-xml
+             mount-count
+             active-mounts)
+    (catch Exception e
+      (log/error e))))
 
 
 (defn eliminate-headers

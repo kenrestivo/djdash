@@ -1,6 +1,7 @@
 (ns djdash.hubzilla
   (:require [clj-http.client :as client]
             [clojure.core.async :as async]
+            [djdash.utils :as utils]
             [com.stuartsierra.component :as component]
             [taoensso.timbre :as log]))
 
@@ -14,6 +15,7 @@
                        {:basic-auth [login pw]
                         :throw-entire-message? true
                         :as :json
+                        :retry-handler utils/retry
                         :form-params {:title "Now Playing"
                                       :status (format "%s \nListen here: %s"
                                                       playing listen)}})]
