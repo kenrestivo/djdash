@@ -14,7 +14,7 @@
 (deftest example-confs
   (testing "example configs")
   ;; TODO: need java resoruce path
-  (is (every? map?  (for [f (edns-with-path "resources")]
+  (is (every? map?  (for [f (edns-with-path "resources/configs")]
                       (do
                         (testing f)
                         (read-and-validate f))))))
