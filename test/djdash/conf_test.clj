@@ -8,7 +8,7 @@
 
 (defn edns-with-path
   [path]
-  (for [f (file/file-names path  #".*?\.edn")]
+  (for [f (file/file-names path  #".*?\.edn$")]
     (str path "/" f)))
 
 (deftest example-confs
