@@ -25,11 +25,11 @@
 
 (defn listener-details
   [m]
-  (->> m
-       vals
-       (map :listeners)
-       (mapcat identity)
-       (map #(dissoc % :connected))))
+  (some->> m
+           vals
+           (map :listeners)
+           (mapcat identity)
+           (map #(dissoc % :connected))))
 
 
 (defn parse-xml

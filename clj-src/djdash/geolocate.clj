@@ -42,7 +42,7 @@
          (jdbc/query conn)
          first)
     (catch Exception e
-      (log/error e))))
+      (log/error (.getCause e)))))
 
 
 
@@ -144,11 +144,15 @@
               (log/info "starting request loop")
               (loop []
                 (let [combined (async/<!! request-ch)
-                      deets (stats/listener-details combined)]
+                      deets (try 
+                              (stats/listener-details combined)
+                              (catch Exception e
+                                (log/error e)))]
                   (log/trace "got request" combined)
                   (when-not (= (some-> combined :cmd) :quit)
-                    (log/trace "updating geos" (doall deets))
-                    (send-off conn-agent update-geos deets dbc lookup-ch)
+                    (when deets
+                      (log/trace "updating geos" (doall deets))
+                      (send-off conn-agent update-geos deets dbc lookup-ch))
                     (recur))))
               (catch Exception e
                 (log/error e)))
