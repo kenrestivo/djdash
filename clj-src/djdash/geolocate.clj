@@ -68,7 +68,7 @@
 
 (defn fetch-geo
   [ip url api-key retry-wait max-retries]
-  (log/trace "fetching geo from api:" ip)
+  (log/debug "fetching geo from api:" ip)
   (try
     (->> (client/get url {:query-params {:ip ip,
                                          :key api-key
@@ -135,7 +135,8 @@
 
 (defn start-request-loop
   "Must start after lookup loop.
-   Takes a Geo record. Starts a channel/loop that accepts combined stats from icecast."
+   Takes a Geo record. Starts a channel/loop that accepts combined stats from icecast.
+   Updates the geo agent with the listener details."
   [{:keys [dbc conn-agent lookup-ch sente] :as this}]
   {:pre [ (every? (comp not nil?) [dbc lookup-ch sente conn-agent])]}
   (let [request-ch (async/chan (async/sliding-buffer 5000))]
@@ -151,7 +152,7 @@
                     (recur))))
               (catch Exception e
                 (log/error e)))
-            (log/debug "exiting request loop"))
+            (log/info "exiting request loop"))
     (log/info "request loop started")
     (-> this
         (assoc  :request-ch request-ch))))
@@ -179,14 +180,14 @@
                   (when-not (= cmd :quit)
                     (log/trace "fetching" m)
                     (when-let [g (fetch-geo ip url api-key retry-wait max-retries)]
-                      (log/trace "lookup loop, fetch returnd " g)
+                      (log/debug "lookup loop, fetch returned " g)
                       (insert-geo dbc g)
                       (send-off conn-agent merge (merge-and-keyify-geo m g)))
                     (Thread/sleep ratelimit-delay-ms)
                     (recur))))
               (catch Exception e
                 (log/error e)))
-            (log/debug "exiting lookup loop"))
+            (log/info "exiting lookup loop"))
     (log/info "lookup loop started")
     (-> this
         (assoc  :lookup-ch lookup-ch))))
