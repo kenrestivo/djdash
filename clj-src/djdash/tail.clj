@@ -60,7 +60,7 @@
   [sente all]
   (try
     (let [p (process-bufs all)]
-      (log/debug " c> " p)
+      (log/trace " c> " p)
       (utils/broadcast sente :djdash/buffer p))
     (catch Exception e
       (log/error e))))
