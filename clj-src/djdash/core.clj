@@ -3,6 +3,7 @@
             [com.stuartsierra.component :as component]
             [djdash.geolocate :as geo]
             [djdash.log :as dlog]
+            [djdash.nrepl :as n]
             [schema.core :as s]
             [djdash.conf :as conf]
             [djdash.db :as db]
@@ -18,13 +19,14 @@
 
 
 (defn make-system
-  [{:keys [timbre tailer web-server db geo scheduler hubzilla now-playing]}]
+  [{:keys [timbre tailer web-server nrepl db geo scheduler hubzilla now-playing]}]
   ;; TODO: hack! just use schema
   {:pre  [(every? identity (map map? [timbre db tailer hubzilla scheduler now-playing geo web-server]))]} 
   (component/system-map
    :log (dlog/start-log timbre)
    :tailer (tail/create-tailer tailer)
    :db   (db/create-db db)
+   :nrepl (n/create-nrepl nrepl)
    :geo   (geo/create-geo geo)
    :hubzilla   (hubzilla/create-hubzilla hubzilla)
    :nowplaying (nowplaying/create-nowplaying now-playing)

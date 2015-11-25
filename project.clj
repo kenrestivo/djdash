@@ -23,6 +23,7 @@
                  [environ "1.0.1"]
                  [http-kit "2.1.19"]
                  [utilza "0.1.77"]
+                 [org.clojure/tools.nrepl "0.2.11"]
                  [clj-ical "1.1" :exclusions [clj-time]]
                  [org.clojure/data.xml "0.0.8"]
                  [clj-time "0.11.0"]

@@ -9,8 +9,6 @@
 
 
 
-
-
 (defn setup-sente
   []
   (let [{:keys [ch-recv send-fn ajax-post-fn 
@@ -99,5 +97,6 @@
   (def srv (kit/run-server h {:port 8080}))
   
   (srv)
+
   
   )

@@ -38,6 +38,7 @@
                            (s/required-key :retry-wait) s/Int
                            (s/required-key :url)  s/Str}
    (s/required-key :db)  Db
+   (s/optional-key :nrepl) {(s/required-key :port) s/Int}
    (s/required-key :scheduler)  {(s/required-key :url)  s/Str
                                  (s/required-key :ical-file)  s/Str
                                  (s/required-key :json-schedule-file)  s/Str
