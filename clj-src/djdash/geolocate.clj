@@ -309,7 +309,6 @@
 (comment
 
 
-  (require '[djdash.core :as sys])
 
   (do
     (require '[djdash.core :as sys])
@@ -322,7 +321,7 @@
     (swap! sys/system component/start-system [:geo])
     )
   
-  (->> @sys/system :geo  :conn-agent deref)
+  (->> @sys/system :geo  :conn-agent deref vals (map :ip))
 
   (->> @sys/system :db :conn)
 
