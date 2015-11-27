@@ -189,8 +189,9 @@
                     (log/trace "fetching" m)
                     (when-let [g (fetch-geo ip url api-key retry-wait max-retries)]
                       (log/debug "lookup loop, fetch returned " g)
-                      (send-off conn-agent merge (merge-and-keyify-geo m g))
-                      (insert-geo dbc g))
+                      (insert-geo dbc g)
+                      ;; XXX possible race condition?
+                      (send-off conn-agent merge (merge-and-keyify-geo m g)))
                     (Thread/sleep ratelimit-delay-ms)
                     (recur))))
               (catch Exception e
