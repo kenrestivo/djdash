@@ -167,14 +167,13 @@
         (assoc  :request-ch request-ch))))
 
 
-
-;; XXX TODO: why doesn't this update the atom too? Don't I need that?
+;; TODO: use MQTT for the broadcasting
 (defn start-lookup-loop
   "Takes a Geo record.
    Starts a channel/loop that waits for requests to look up a geo from the API service.
    Requests are a connection map that have an :ip address. When it gets one,
-   looks it up via the API, then when it gets a result, updates the db cache,
-   and broadcasts the new connection record with its geo info included, to all cljs clients.
+   looks it up via the API, then when it gets a result, updates the db cache, updates
+   the agent, and broadcasts the new connection record with its geo info included, to all cljs clients.
    Throttles requests via :ratelimit-delay-ms in settings.
    If the lookup request has {:cmd :quit}, shuts down the loop.
    Assocs the :lookup-ch into the Geo record."
@@ -190,8 +189,8 @@
                     (log/trace "fetching" m)
                     (when-let [g (fetch-geo ip url api-key retry-wait max-retries)]
                       (log/debug "lookup loop, fetch returned " g)
-                      (insert-geo dbc g)
-                      (send-off conn-agent merge (merge-and-keyify-geo m g)))
+                      (send-off conn-agent merge (merge-and-keyify-geo m g))
+                      (insert-geo dbc g))
                     (Thread/sleep ratelimit-delay-ms)
                     (recur))))
               (catch Exception e
