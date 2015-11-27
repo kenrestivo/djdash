@@ -44,22 +44,3 @@
        (remove (partial = "<br>"))
        (remove (partial = ""))
        reverse))
-
-(defn d3-date
-  [d]
-  (time/unparse (time/formatters :mysql)  (coerce/from-long d)))
-
-(defn mangle-dygraph*
-  [listeners]
-  (vec (concat [["Time (UTC)" "Listeners"]]
-               (for [[d l] listeners]
-                 [(d3-date d) l]))))
-
-(defn mangle-dygraph
-  [listeners]
-  (apply str
-         (for [[d l] (mangle-dygraph* listeners)]
-           (str  d "," l "\n"))))
-
-
-
