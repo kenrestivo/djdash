@@ -90,8 +90,10 @@
 
 
 
-
+;; TODO: relace this with MQTT. I don't need to run a message server here.
 (defn nowplaying-listen-loop
+  "This loop/daemon pulls from the sente channel (clients) 
+   and pushes the current state of now playing back to the client who requested it"
   [{:keys [chsk-send! recv-pub]} {:keys [nowplaying]}]
   {:pre [(= clojure.lang.Agent (type nowplaying))
          (every? (comp not nil?) [chsk-send! recv-pub])]}
@@ -170,6 +172,8 @@
 
 
 (defn update-listeners
+"Takes settings and a geocode request channel. Fetches the latest now playing info from the server,
+ updates the nowplaying agent, and pushes the update out to the geocode component."
   [olde {:keys [host port adminuser adminpass song-mount] :as settings} request-ch]
   (log/trace "checking listeners" host port adminuser adminpass song-mount)
   (try

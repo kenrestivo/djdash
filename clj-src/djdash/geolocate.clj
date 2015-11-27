@@ -100,6 +100,9 @@
 
 
 (defn get-found-deets
+"Takes new details, new connection ids, db, and lookup channel.
+ Looks up the IP from the database, if found, updates the dataw ith it nd returns it.
+ If not found, sends it to lookup-channel loop to lookup, adn returns old data unchanged. "
   [deets new-conn-ids  dbc lookup-ch]
   (->> (for [{:keys [id ip] :as new-conn} deets
              :when (contains? new-conn-ids id)
@@ -113,7 +116,9 @@
 
 
 (defn update-geos
-  "NOTE: executes inside a send-off or send agent state"
+  "Executes inside a send-off or send agent state.
+   Taks the old state of the geos agent, new listener details from nowplaying, and a lookup channel.
+   Looks up and merges in listener location."
   [prev-conns new-deets dbc lookup-ch]
   (let [new-conn-ids (apply disj (->> new-deets (map :id) set)  (keys prev-conns))
         dead-conn-ids (apply disj (-> prev-conns keys set) (->> new-deets (map :id)))]
@@ -135,8 +140,8 @@
 
 (defn start-request-loop
   "Must start after lookup loop.
-   Takes a Geo record. Starts a channel/loop that accepts combined stats from icecast.
-   Updates the geo agent with the listener details."
+   Starts a channel/loop that accepts combined stats from nowplaying.
+   When it receives one, sends it off to update-geos to fetch the current geo from db or API."
   [{:keys [dbc conn-agent lookup-ch sente] :as this}]
   {:pre [ (every? (comp not nil?) [dbc lookup-ch sente conn-agent])]}
   (let [request-ch (async/chan (async/sliding-buffer 5000))]
@@ -163,7 +168,7 @@
 
 
 
-
+;; XXX TODO: why doesn't this update the atom too? Don't I need that?
 (defn start-lookup-loop
   "Takes a Geo record.
    Starts a channel/loop that waits for requests to look up a geo from the API service.
