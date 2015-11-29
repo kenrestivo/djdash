@@ -100,7 +100,7 @@
 
 
 (defn get-found-deets
-"Takes new details, new connection ids, db, and lookup channel.
+  "Takes new details, new connection ids, db, and lookup channel.
  Looks up the IP from the database, if found, updates the dataw ith it nd returns it.
  If not found, sends it to lookup-channel loop to lookup, adn returns old data unchanged. "
   [deets new-conn-ids  dbc lookup-ch]
@@ -184,16 +184,19 @@
     (future (try
               (log/info "starting lookup loop")
               (loop []
-                (let [{:keys [ip cmd id] :as m} (async/<!! lookup-ch)]
-                  (when-not (= cmd :quit)
-                    (log/trace "fetching" m)
-                    (when-let [g (fetch-geo ip url api-key retry-wait max-retries)]
-                      (log/debug "lookup loop, fetch returned " g)
-                      (insert-geo dbc g)
-                      ;; XXX possible race condition?
-                      (send-off conn-agent merge (merge-and-keyify-geo m g)))
-                    (Thread/sleep ratelimit-delay-ms)
-                    (recur))))
+                (try
+                  (let [{:keys [ip cmd id] :as m} (async/<!! lookup-ch)]
+                    (when-not (= cmd :quit)
+                      (log/trace "fetching" m)
+                      (when-let [g (fetch-geo ip url api-key retry-wait max-retries)]
+                        (log/debug "lookup loop, fetch returned " g)
+                        (insert-geo dbc g)
+                        ;; XXX possible race condition?
+                        (send-off conn-agent merge (merge-and-keyify-geo m g)))))
+                  (catch Exception e
+                    (log/error e)))
+                (Thread/sleep ratelimit-delay-ms)
+                (recur))
               (catch Exception e
                 (log/error e)))
             (log/info "exiting lookup loop"))
@@ -332,6 +335,13 @@
 
   (->> @sys/system :geo  vals (map type))
 
+  (->> @sys/system :geo  :request-ch async/poll!)
+
+  (->> @sys/system :geo  :lookup-ch async/poll!)
+
+  (dotimes [n 200] 
+    (async/alts!! [(async/timeout 1000)
+                   (->> @sys/system :geo  :lookup-ch)]))
   
   (async/>!! (->> @sys/system :db :cmd-ch) {:cmd :save})
 
