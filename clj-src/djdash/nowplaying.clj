@@ -284,7 +284,7 @@
   
   (log/set-level! :trace)
 
-
+  (send (->> @sys/system :nowplaying :nowplaying-internal :nowplaying) assoc :playing "[LIVE!] not really")
 
 
   (-> @sys/system :nowplaying :nowplaying-internal :nowplaying deref :-combined)

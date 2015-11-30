@@ -8,6 +8,11 @@
   (:import [goog.net Jsonp]
            [goog Uri]))
 
+
+;; this is bad
+
+(def ^:export L js/L)
+
 (defn un-json
   [res]
   (-> res
@@ -44,3 +49,53 @@
        (remove (partial = "<br>"))
        (remove (partial = ""))
        reverse))
+
+
+(defn buffer-tick
+  [n axis]
+  (str (-> n int (/ 1000)) "k"))
+
+
+(defn min-chat-stamp
+  []
+  (-> (js/Date.)
+      .getTime
+      (/ 1000)
+      (- (* 60 60 24 30))
+      Math/floor))
+
+
+
+
+
+(defn format-time
+  [d]
+  (cljs-time.format/unparse
+   (cljs-time.format/formatter "h:mma")
+   (goog.date.DateTime.  d)))
+
+
+
+
+(defn short-weekday
+  [d]
+  (.toLocaleString d js/window.navigator.language #js {"weekday" "short"}))
+
+
+(defn live?
+  [playing-text]
+  (->> playing-text
+       (re-find  #"^\[LIVE\!\].*?")
+       boolean))
+
+
+(defn format-schedule-item
+  [name start_timestamp end_timestamp]
+  (str (short-weekday start_timestamp) " "
+       (format-time start_timestamp) " - " (format-time end_timestamp) "   " name ))
+
+
+(defn changed-keys
+  "Returns a set of keys in new-map that are not present in old-map"
+  [old-map new-map]
+  (apply disj (-> new-map keys set) (keys old-map)))

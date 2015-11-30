@@ -16,7 +16,7 @@ div.led {
 
 
 #users {
-  width: 200px;
+  width: 400px;
   overflow: auto;
   border: 1px solid #666;
   padding: 8px;
@@ -59,24 +59,56 @@ button { color: black; }
 
 
 /* hack, use bootstrap instead */
-#chatinput {width: 800px }
+#chatinput {width: 100%; }
 
 
 #listener-chart { 
   height: 200px;
-  width: 500px;
+  width: 100%;
 }
 
 #buffer-chart { 
   height: 200px;
-  width: 500px;
+  width: 100%;
 }
 
 #listener-map { 
   height: 250px;
-  width: 500px;
+  width: 100%;
 }
 
 .upnext {text-align: left;  }
 
 li.upnext {  list-style-type: none;}
+
+.banner {vertical-align: top;  }
+
+h2 { 
+  margin-top: 0px;
+  vertical-align: top;}
+
+div.to-top { 
+  margin-top: 0px;
+  vertical-align: top;}
+
+#messages { width: 100%; }
+
+
+@media (max-width: 767px) {
+  .row {
+    margin-right:0;
+    margin-left:0;
+  }
+  .row > [class*='col-'] {
+    margin-right:0;
+    margin-left:0;
+    padding-right:0;
+    padding-left:0;
+  }
+  body {
+    padding-right: 0;
+    padding-left: 0;
+    margin-right: 0;
+    margin-left: 0;
+  }
+}
