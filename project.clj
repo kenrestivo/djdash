@@ -41,12 +41,10 @@
                  [org.clojure/core.async "0.2.371"]
                  ]
 
-
-  :source-paths ["clj-src" "dev"]
   :plugins [[lein-pdo "0.1.1"]
-            [lein-figwheel "0.5.0-2"
-             :exclusions [org.clojure/tools.reader ring/ring-core]]
             [lein-cljsbuild "1.1.1"]
+            [lein-figwheel "0.5.0-2"
+                              :exclusions [org.clojure/tools.reader ring/ring-core]]
             [migratus-lein "0.2.0"
              :exclusions [org.clojure/clojure]]]
   ;;:hooks [leiningen.cljsbuild]
@@ -68,7 +66,7 @@
                                     [:cljsbuild :builds "release" :compiler :output-to]
                                     :target]
   :profiles {:dev {:repl-options {:nrepl-middleware [cemerick.piggieback/wrap-cljs-repl]}
-                   :source-paths ["clj-src" "cljs-src"]
+                   :source-paths ["clj-src" "cljs-src" "dev"]
                    :dependencies [[org.slf4j/log4j-over-slf4j "1.7.12"]
                                   [com.cemerick/piggieback "0.2.1"]
                                   [figwheel-sidecar "0.5.0-2"
@@ -78,6 +76,7 @@
                                   [org.slf4j/slf4j-simple "1.7.12"]]}
              :uberjar {:prep-tasks [["cljsbuild" "once" "release"] "javac" "compile"]
                        :uberjar-name "djdash.jar"
+                       :source-paths ["clj-src" "cljs-src"]
                        :aot :all}
              :release {:jvm-opts ["-XX:-OmitStackTraceInFastThrow"
                                   "-Xms32m"
