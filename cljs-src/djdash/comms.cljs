@@ -107,9 +107,9 @@
                                      (.marker  (utils/L.latLng lat lng))
                                      (.bindPopup (goog.string.format "<b>%s</b><br />%s, %s"
                                                                      city region country)))]))
-          changed-keys (utils/changed-keys connections msg)]
-      (debug "map changed" new-connections new-markers changed-keys)
-      (let [debug-new-markers (merge (apply dissoc markers changed-keys)
+          dead-marker-keys (utils/changed-keys msg connections)]
+      (debug "map changed" new-connections new-markers dead-marker-keys)
+      (let [debug-new-markers (merge (apply dissoc markers dead-marker-keys)
                                      new-markers)]
         (debug debug-new-markers)
         (-> old-state 

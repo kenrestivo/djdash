@@ -96,6 +96,6 @@
 
 
 (defn changed-keys
-  "Returns a set of keys in new-map that are not present in old-map"
-  [old-map new-map]
-  (apply disj (-> new-map keys set) (keys old-map)))
+  "Returns a set of keys in map bm that are not present in map am"
+  [am bm]
+  (apply disj (-> bm keys set) (keys am)))
