@@ -35,6 +35,7 @@
 (defn init!
   []
   (js/console.log "loading" (.toString (js/Date.)))
+  (log/set-level! :info) ;; where should i do this, this isn't a good place
   ;; clear out for use with figwheel
   (swap! state/app-state #(-> % 
                         (assoc-in [:geo :connections] {})
@@ -51,6 +52,8 @@
 
   (ns djdash.core)
 
+
+  (log/set-level! :debug)
 
   (-> @state/app-state :schedule keys)
 
