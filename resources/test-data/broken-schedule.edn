@@ -1,0 +1,82 @@
+{:future
+ [{:start_timestamp #inst "2015-12-01T00:00:00.000-00:00",
+   :end_timestamp #inst "2015-12-01T04:00:00.000-00:00",
+   :name "Beat Meet and Greet",
+   :url ""}
+  {:start_timestamp #inst "2015-12-02T00:00:00.000-00:00",
+   :end_timestamp #inst "2015-12-02T04:00:00.000-00:00",
+   :name "Stylus Flite",
+   :url ""}
+  {:start_timestamp #inst "2015-12-02T04:00:00.000-00:00",
+   :end_timestamp #inst "2015-12-02T07:59:00.000-00:00",
+   :name "Sound Dimensions w/ DJ Darkat",
+   :url ""}
+  {:start_timestamp #inst "2015-12-03T03:23:00.000-00:00",
+   :end_timestamp #inst "2015-12-03T09:00:00.000-00:00",
+   :name "Spukkin Faceship's Fukkin Spaceship",
+   :url ""}
+  {:start_timestamp #inst "2015-12-04T04:00:00.000-00:00",
+   :end_timestamp #inst "2015-12-04T10:00:00.000-00:00",
+   :name "Dam Free Radio",
+   :url ""}
+  {:start_timestamp #inst "2015-12-05T03:00:00.000-00:00",
+   :end_timestamp #inst "2015-12-05T07:55:00.000-00:00",
+   :name "Stones and Bones",
+   :url ""}
+  {:start_timestamp #inst "2015-12-05T08:00:00.000-00:00",
+   :end_timestamp #inst "2015-12-05T10:00:00.000-00:00",
+   :name "Ecological Sound Corps",
+   :url ""}
+  {:start_timestamp #inst "2015-12-06T00:00:00.000-00:00",
+   :end_timestamp #inst "2015-12-06T02:00:00.000-00:00",
+   :name "Cultura Undergrnd",
+   :url ""}
+  {:start_timestamp #inst "2015-12-06T02:00:00.000-00:00",
+   :end_timestamp #inst "2015-12-06T04:00:00.000-00:00",
+   :name "Cultura Subrepticia",
+   :url ""}
+  {:start_timestamp #inst "2015-12-06T20:00:00.000-00:00",
+   :end_timestamp #inst "2015-12-06T22:00:00.000-00:00",
+   :name "Garth Radar",
+   :url ""}
+  {:start_timestamp #inst "2015-12-07T01:00:00.000-00:00",
+   :end_timestamp #inst "2015-12-07T05:00:00.000-00:00",
+   :name "5lowershop ",
+   :url ""}
+  {:start_timestamp #inst "2015-12-08T00:00:00.000-00:00",
+   :end_timestamp #inst "2015-12-08T04:00:00.000-00:00",
+   :name "Beat Meet and Greet",
+   :url ""}
+  {:start_timestamp #inst "2015-12-09T00:00:00.000-00:00",
+   :end_timestamp #inst "2015-12-09T04:00:00.000-00:00",
+   :name "Stylus Flite",
+   :url ""}
+  {:start_timestamp #inst "2015-12-09T04:00:00.000-00:00",
+   :end_timestamp #inst "2015-12-09T07:59:00.000-00:00",
+   :name "Sound Dimensions w/ DJ Darkat",
+   :url ""}
+  {:start_timestamp #inst "2015-12-10T03:23:00.000-00:00",
+   :end_timestamp #inst "2015-12-10T09:00:00.000-00:00",
+   :name "Spukkin Faceship's Fukkin Spaceship",
+   :url ""}
+  {:start_timestamp #inst "2015-12-11T04:00:00.000-00:00",
+   :end_timestamp #inst "2015-12-11T10:00:00.000-00:00",
+   :name "Dam Free Radio",
+   :url ""}
+  {:start_timestamp #inst "2015-12-12T03:00:00.000-00:00",
+   :end_timestamp #inst "2015-12-12T07:55:00.000-00:00",
+   :name "Stones and Bones",
+   :url ""}
+  {:start_timestamp #inst "2015-12-12T08:00:00.000-00:00",
+   :end_timestamp #inst "2015-12-12T10:00:00.000-00:00",
+   :name "Ecological Sound Corps",
+   :url ""}
+  {:start_timestamp #inst "2015-12-13T00:00:00.000-00:00",
+   :end_timestamp #inst "2015-12-13T02:00:00.000-00:00",
+   :name "Cultura Undergrnd",
+   :url ""}
+  {:start_timestamp #inst "2015-12-13T02:00:00.000-00:00",
+   :end_timestamp #inst "2015-12-13T04:00:00.000-00:00",
+   :name "Cultura Subrepticia",
+   :url ""}],
+ :current [nil]}

@@ -66,7 +66,7 @@
    Returns the updated schedule atom with the current and future updated for that time provided."
   [^java.util.Date d m]
   (->> m
-       (group-by #(->> % :start_timestamp (.after d)))
+       (group-by #(some->> % :start_timestamp (.after d)))
        vals
        reverse ;; because sometimes there are no current, everything is future!
        (zipmap [:future :current])))
@@ -121,13 +121,18 @@
    which takes the old schedule atom and updates the future/current and last-started,
    and goes out and fetches a new schedule."
   [^java.lang.String url ^java.util.Date d]
-  (fn [{:keys [current future]}]
-    (let [{:keys [current future] :as new-sched} (->> (concat current future) ;; rejoining for resplitting
-                                                      (split-by-current d))]
-      (-> (or (some->> url fetch-schedule  (split-by-current d))
-              new-sched)
-          ;; don't need to keep all the old currents!
-          (update-in [:current] #(-> % last vector))))))
+  (fn [{:keys [current future] :as old}]
+    (try
+      (let [{:keys [current future] :as new-sched} (->> (concat current future) ;; rejoining for resplitting
+                                                        (split-by-current d))]
+        (-> (or (some->> url fetch-schedule  (split-by-current d))
+                new-sched)
+            ;; don't need to keep all the old currents!
+            (update-in [:current] #(-> % last vector))))
+      (catch Exception e
+        (log/error e)
+        (log/error (.getCause e))
+        old))))
 
 
 
@@ -144,7 +149,7 @@
   (log/info "starting schedule checker thread")
   (future (while true
             (try
-              ;;(log/debug "checking" url)
+              (log/debug "checking" url)
               (update-schedule schedule url)
               (catch Exception e
                 (log/error e)))
@@ -295,13 +300,22 @@
   (log/set-level! :info)
   
 
+  ;; for debugging
+  (update-schedule 
+   (->> @sys/system :scheduler :scheduler-internal :schedule)
+   (->> @sys/system :scheduler :settings :url))
 
+  (.getCause *e)
+
+  (->> @sys/system :scheduler :scheduler-internal :schedule restart-agent)
+
+  (->> @sys/system :scheduler :scheduler-internal :schedule)
 
   (->> @sys/system :scheduler :scheduler-internal :schedule deref  (urepl/massive-spew "/tmp/foo.edn"))
   
   (defonce fake-schedule (atom {:current []
                                 :future []}))
-                                
+  
   
   (->> "http://localhost/schedule-test/week-info"
        (update-schedule fake-schedule )
@@ -325,7 +339,6 @@
        fetch-schedule
        (split-by-current (java.util.Date.))
        (urepl/massive-spew "/tmp/foo.edn"))
-
 
 
 
