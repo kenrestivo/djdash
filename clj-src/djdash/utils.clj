@@ -31,14 +31,16 @@
 
 (defn make-retry-fn
   "Retries, with backoff. Logs non-fatal errors as wern, fatal as error"
-  [retry-wait max-retries]
+  ([retry-wait max-retries expand-backoff?]
   (fn retry
     [ex try-count http-context]
     (log/warn ex http-context)
-    (Thread/sleep (* try-count retry-wait))
+    (Thread/sleep (if expand-backoff? (* try-count retry-wait) retry-wait))
     (if (> try-count max-retries) 
       false
       (log/error ex try-count http-context))))
+  ([retry-wait max-retries]
+     (make-retry-fn retry-wait make-retry-fn true)))
 
 ;;; XXX hack, don't use, use make-retry-fn and thread settings through
 (defn retry

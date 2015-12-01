@@ -74,7 +74,7 @@
                                          :key api-key
                                          :format "json"}
                           :headers {"Accept" "application/json"}
-                          :retry-handler (utils/make-retry-fn retry-wait max-retries)
+                          :retry-handler (utils/make-retry-fn retry-wait max-retries false)
                           :as :json})
          :body
          munge-geo)
@@ -104,14 +104,18 @@
  Looks up the IP from the database, if found, updates the dataw ith it nd returns it.
  If not found, sends it to lookup-channel loop to lookup, adn returns old data unchanged. "
   [deets new-conn-ids  dbc lookup-ch]
-  (->> (for [{:keys [id ip] :as new-conn} deets
-             :when (contains? new-conn-ids id)
-             :let [found-geo (get-geo dbc ip)]] 
-         (if (map? found-geo)
-           (merge-and-keyify-geo new-conn found-geo)
-           (async/>!! lookup-ch new-conn)))
-       (filter map?) ;; again, agents return true, don't want those. yet.
-       (apply merge)))
+  (try
+    (->> (for [{:keys [id ip] :as new-conn} deets
+               :when (contains? new-conn-ids id)
+               :let [found-geo (get-geo dbc ip)]] 
+           (if (map? found-geo)
+             (merge-and-keyify-geo new-conn found-geo)
+             (async/>!! lookup-ch new-conn)))
+         (filter map?) ;; again, agents return true, don't want those. yet.
+         (apply merge))
+    (catch Exception e
+      (log/error e)
+      deets)))
 
 
 
@@ -120,17 +124,22 @@
    Taks the old state of the geos agent, new listener details from nowplaying, and a lookup channel.
    Looks up and merges in listener location."
   [prev-conns new-deets dbc lookup-ch]
-  (let [new-conn-ids (apply disj (->> new-deets (map :id) set)  (keys prev-conns))
-        dead-conn-ids (apply disj (-> prev-conns keys set) (->> new-deets (map :id)))]
-    (-> (apply dissoc prev-conns dead-conn-ids)
-        (merge (get-found-deets new-deets new-conn-ids dbc lookup-ch)))))
+  (try
+    (log/trace "update geos" (mapv :id new-deets))
+    (let [new-conn-ids (apply disj (->> new-deets (map :id) set)  (keys prev-conns))
+          dead-conn-ids (apply disj (-> prev-conns keys set) (->> new-deets (map :id)))]
+      (-> (apply dissoc prev-conns dead-conn-ids)
+          (merge (get-found-deets new-deets new-conn-ids dbc lookup-ch))))
+    (catch Exception e
+      (log/error e)
+      prev-conns)))
 
 
 
 (defn watch-geo-fn
   [sente]
   (fn [k r o n]
-    (log/trace k "geo atom watch updated")
+    (log/trace k "geo atom watch updated" o  "=>" n)
     (when (apply not= [o n])
       (do
         (log/debug k "geo changed, broadcasting " o " -> " n)
@@ -156,7 +165,7 @@
                   (log/trace "got request" combined)
                   (when-not (= (some-> combined :cmd) :quit)
                     (when deets
-                      (log/trace "updating geos" (doall deets))
+                      (log/trace "updating geos" (mapv :id deets))
                       (send-off conn-agent update-geos deets dbc lookup-ch))
                     (recur))))
               (catch Exception e
@@ -324,6 +333,8 @@
     )
 
 
+  (log/set-level! :trace)
+
   (do
     (swap! sys/system component/stop-system [:geo])
     (swap! sys/system component/start-system [:geo])
@@ -339,6 +350,8 @@
 
   (->> @sys/system :geo  :lookup-ch async/poll!)
 
+  (->> @sys/system :geo  :lookup-ch async/<!!)
+
   (dotimes [n 200] 
     (async/alts!! [(async/timeout 1000)
                    (->> @sys/system :geo  :lookup-ch)]))
@@ -348,6 +361,7 @@
   (log/merge-config! {:ns-whitelist ["djdash.geolocate"]})
 
   ;; TODO: stick a watch function on conn-agent, see who or what is nuking what?
+
   
 
 
