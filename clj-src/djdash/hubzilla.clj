@@ -10,16 +10,20 @@
   [{:keys [url login pw channel listen]} playing]
   (when (-> playing empty? not)
     (log/trace "sending to hubzilla" playing)
-    (let [{:keys [body headers]}
-          (client/post url
-                       {:basic-auth [login pw]
-                        :throw-entire-message? true
-                        :as :json
-                        :retry-handler utils/retry
-                        :form-params {:title "Now Playing"
-                                      :status (format "%s \nListen here: %s"
-                                                      playing listen)}})]
-      (log/trace "sent to hubzilla" body  " --> " headers))))
+    (try
+      (let [{:keys [body headers]}
+            (client/post url
+                         {:basic-auth [login pw]
+                          :throw-entire-message? true
+                          :as :json
+                          :retry-handler utils/retry
+                          :form-params {:title "Now Playing"
+                                        :status (format "%s \nListen here: %s"
+                                                        playing listen)}})]
+        (log/trace "sent to hubzilla" body  " --> " headers))
+      (catch Throwable e
+        (log/error e)))))
+
 
 
 (defn start-request-loop
