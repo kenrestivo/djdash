@@ -15,10 +15,11 @@
   (try
     (->> {:select [[:username :user] :message]
           :from [:messages]
-          :order-by [[:time_received :asc]]
+          :order-by [[:time_received :desc]]
           :limit chat-log-limit}
          sql/format
          (jdbc/query conn)
+         reverse
          (assoc {:status "OK"} :history))
     (catch Exception e
       (log/error (.getCause e)))))
@@ -49,7 +50,7 @@
 
   (->> (client/get "http://localhost:8080/chatlog"
                    {:as :json})
-;;       :body
+       :body
        (urepl/massive-spew "/tmp/foo.edn"))
 
 
