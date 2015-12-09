@@ -38,9 +38,9 @@
   (log/set-level! :info) ;; where should i do this, this isn't a good place
   ;; clear out for use with figwheel
   (swap! state/app-state #(-> % 
-                        (assoc-in [:geo :connections] {})
-                        (assoc-in [:geo :markers] {})))
-  (comms/request-updates)
+                              (assoc-in [:geo :connections] {})
+                              (assoc-in [:geo :markers] {})))
+  (comms/start-sente)
   (mount-root))
 
 
@@ -59,7 +59,6 @@
 
   (-> @state/app-state :chat :messages)
 
-  (-> @state/app-state :chat :message)
 
   (-> @state/app-state :geo :geo-map)
 
@@ -86,10 +85,13 @@
         new-markers {29392 "bar"}
         old-markers {99293 "foo"}]
     (assoc-in @state/app-state [:geo :markers] (merge (apply dissoc old-markers changed-keys)
-                                                new-markers)))
+                                                      new-markers)))
 
   (:geo *1)
 
   (info "foo")
+
+
+
 
   )

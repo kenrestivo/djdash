@@ -172,7 +172,7 @@
 
 
 (defn update-listeners
-"Takes settings and a geocode request channel. Fetches the latest now playing info from the server,
+  "Takes settings and a geocode request channel. Fetches the latest now playing info from the server,
  updates the nowplaying agent, and pushes the update out to the geocode component."
   [olde {:keys [host port adminuser adminpass song-mount] :as settings} request-ch]
   (log/trace "checking listeners" host port adminuser adminpass song-mount)
@@ -300,5 +300,16 @@
   
   (apply dissoc {:foo 1 :bar 2 :baz 3} [:foo :baz])
 
+  (-> @sys/system :nowplaying :hubzilla)
   
+  (log/set-level! :info)
+
+  (log/set-level! :trace)
+
+  ;;; to force it, for debugging porpoises
+  (post-to-hubzilla (-> @sys/system :nowplaying :hubzilla :request-ch) {:playing "Unknown"}
+                    (->> @sys/system :nowplaying :nowplaying-internal :nowplaying deref))
+  
+  
+
   )

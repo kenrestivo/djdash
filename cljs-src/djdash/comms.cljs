@@ -32,13 +32,6 @@
 
 
 
-(let [{:keys [chsk ch-recv send-fn state]} (sente/make-channel-socket! "/ch"  {:type :auto })]
-  (def chsk       chsk)
-  (def ch-chsk    ch-recv) 
-  (def chsk-send! send-fn) 
-  (def chsk-state state))
-
-
 
 
 ;;; TODO: Move with below?
@@ -58,31 +51,7 @@
             (-> old-app-state :schedule :data :current last get-currently-scheduled)))
 
 
-(defn process-chat
-  [{:keys [lines users] :as new}]
-  (swap! state/app-state update-in [:chat]
-         (fn [{:keys [messages] :as old}]
-           (merge old new {:messages (concat (utils/reverse-split lines)
-                                             messages)}))))
 
-
-
-
-
-(defn update-chat!
-  []
-  (let [{{:keys [url user count id message]}  :chat} @state/app-state
-        u (str url "?" (http/generate-query-string {:user user
-                                                    :msg message
-                                                    :lineNo count
-                                                    :chatId id}))]
-    (utils/jsonp-wrap  u
-                       (if (empty? message)
-                         ;; hack to avoid double-messages
-                         #(-> % utils/un-json process-chat)
-                         identity))
-    (swap! state/app-state assoc-in [:chat :message] "") ;; reset
-    nil))
 
 
 (defn update-buffer
@@ -139,7 +108,7 @@
 
 
 (defn request-updates
-  []
+  [{:keys [chsk-send!]}]
   (chsk-send! [:djdash/schedule {:cmd :refresh}])
   (chsk-send! [:djdash/now-playing {:cmd :refresh}])
   (chsk-send! [:djdash/geo {:cmd :refresh}]))
@@ -162,7 +131,7 @@
   (case id
     :chsk/recv (dispatch-message ?data)
     :chsk/state (cond
-                 (-> ?data :first-open?) (request-updates)
+                 (-> ?data :first-open?) (request-updates (:sente @state/app-state))
                  ;; TODO: CHECK taht this works
                  (-> ?data :disconnected) (set-to-checking))
     ;; ignore handshakes, etc
@@ -170,6 +139,63 @@
 
 
 ;; this actually starts the routing going
-(def event-router (sente/start-chsk-router! ch-chsk dispatch-event))
+(defn start-sente
+  []
+  (debug "starting sente")
+  (swap! state/app-state assoc :sente 
+         (let [{:keys [chsk ch-recv send-fn state]} (sente/make-channel-socket! "/ch"  {:type :auto })]
+           {:chsk    chsk
+            :ch-chsk    ch-recv
+            :chsk-send! send-fn
+            :chsk-state state}))
+  (swap! state/app-state 
+         #(-> %
+              (assoc-in  [:sente :event-router] 
+                         (sente/start-chsk-router! (-> % :sente :ch-chsk) dispatch-event)))))
 
 
+(defn login-chat
+  []
+  (let [{:keys [user login]} (:chat @state/app-state)]
+    (login (clj->js user))))
+
+
+(defn start-chat
+  []
+  (when-not (-> @state/app-state :chat :login) ;; guard against double-instantiation in figwheel
+    (swap! state/app-state update-in [:chat] merge
+           (-> js/settings
+               utils/un-json
+               :chat 
+               (merge {:onMessage #(swap! state/app-state update-in [:chat :messages] 
+                                          (fn [o] (cons (utils/un-json %) o)))
+                       :onRosterChanged #(swap! state/app-state assoc-in [:chat :users] (utils/un-json %))
+                       :onConnected (fn [_]
+                                      (swap! state/app-state assoc-in [:chat :connected?] true)
+                                      (login-chat))
+                       :onDisconnected (fn [_]
+                                         (swap! state/app-state
+                                                #(-> % 
+                                                     (assoc-in [:chat :connected?] false)
+                                                     (assoc-in [:chat :users] [(:checking state/strs)])
+                                                     (assoc-in [:chat :messages] []))))})
+               
+               clj->js
+               js/spaz_radio_chat.
+               utils/un-json))))
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(comment
+
+  (log/set-level! :trace)
+
+
+  (-> @state/app-state :chat :user)
+
+  (-> js/settings utils/un-json :chat)
+
+  (-> @state/app-state :chat :connected?)  
+
+  )

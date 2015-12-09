@@ -41,6 +41,11 @@
                                                             :minTickSize 1
                                                             :tickFormatter (comp str int)
                                                             :color 1}}}
+                          :sente {:event-router nil
+                                  :chsk nil
+                                  :ch-chsk nil
+                                  :chsk-send! nil
+                                  :chsk-state nil}
                           :geo {:node-name "listener-map"
                                 :url "http://otile{s}.mqcdn.com/tiles/1.0.0/osm/{z}/{x}/{y}.png"
                                 :options {:subdomains "1234",
@@ -74,14 +79,8 @@
                                                            :color "rgba(79, 79, 84, 0.5)"
                                                            :max 150000
                                                            :tickFormatter utils/buffer-tick}}}
-                          :chat {:url js/chat_url
-                                 ;; TODO: swap this in during init, don't do it in the app declraration
-                                 :count (utils/min-chat-stamp)
-                                 :user ""
-                                 :users (:checking strs)
-                                 :id (int (rand 999999))
-                                 :errors ""
-                                 :message ""
-                                 :timeout 2000
+                          :chat {:user ""
+                                 :users [(:checking strs)]
                                  :messages []
-                                 :lines ""}}))
+                                 :connected? false
+                                 }}))

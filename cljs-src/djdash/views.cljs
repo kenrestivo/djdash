@@ -47,20 +47,23 @@
    "LIVE!"])
 
 ;; TODO: use modal
-(defn login
+(defn login-user
   []
   (let [u (js/prompt "who are you, dj person?")]
     (when (not (empty? u))
       (swap! state/app-state (fn [o]
                                (.set state/storage :user u)
+                               ;; TODO: maybe log them in, but have to wait until the connection happens?
                                (assoc-in o [:chat :user] u ))))))
+
 
 
 (defn next-up
   [{:keys [name start_timestamp end_timestamp]}]
-  [:li {:class "upnext"
-        :key start_timestamp}
-   (utils/format-schedule-item name start_timestamp end_timestamp)])
+  (when (and start_timestamp end_timestamp name)
+    [:li {:class "upnext"
+          :key start_timestamp}
+     (utils/format-schedule-item name start_timestamp end_timestamp)]))
 
 (defn schedule-view
   []
@@ -119,11 +122,12 @@
 
 (defn chat-users
   []
-  (let [{:keys [users]} (-> @state/app-state :chat)]
+  (let [{:keys [users connected?]} (-> @state/app-state :chat)]
     [:div  {:id "user-section"}
      [:ul  {:class "list-inline"}
-      (cons [:li  {:class "text-label" :key "in-chat-now"} "In Chat Now:"]
-            (for [u (utils/hack-users-list users)]
+      ;; TODO: turn the text red or put an LED there to indicate chat is connected
+      (cons [:li  {:class (when connected? "text-label") :key "in-chat-now"} "In Chat Now:"]
+            (for [u users]
               [:li  {:class "label label-default paddy"
                      :key u ;;; XXX baaaad, not unique?
                      ;; TODO: why am i setting the html anyway?
@@ -150,41 +154,47 @@
                                       27 (stop)
                                       nil)})])))
 
+(defn messages-view
+  [msgs]
+  (try
+    (when (< 0 (count msgs))
+      [:div {:id "messages"}
+       [:ul {:class "list-group"}
+        ;; this contrived index will work for the moment. timestamp, maybe, but that might be tricky
+        (for [{:keys [user message idx]}  (map-indexed #(assoc %2 :idx %1) msgs)]
+          [:li {:class "list-group-item"
+                :key  (str "msg" idx)}
+           [:span {:class "handle"} (str user ": ")]
+           [:span {:class "message"} message]])]])
+    (catch :default e
+      (error e))))
 
-(defn send-chat!
-  [v]
-  (swap! state/app-state assoc-in [:chat :message] v))
+
 
 (defn chat-view
   []
   (reagent/create-class 
    {:display-name "chat-view"
     :reagent-render (fn []
-                      (let [{:keys [user messages]} (-> @state/app-state :chat)]
+                      (let [{:keys [user messages sendMessage]} (-> @state/app-state :chat)]
                         [:div {:id "chat"}
                          (if (empty? user)
-                           [:button  {:onClick (fn [_] (login))} "Log In"]
+                           [:button  {:onClick (fn [_] (login-user))} "Log In"]
                            [:div 
                             [:label {:htmlFor "chatinput"
                                      :class "handle"}
                              (str user ": ")]
                             [chat-input {:title "Say something here." 
-                                         :on-save send-chat!}]
+                                         :on-save sendMessage}]
                             ])
-                         [:div  {:id "messages"
-                                 :dangerouslySetInnerHTML   {:__html (utils/hack-list-group messages)}}]]))
-    
-    :component-will-mount (fn [this]
-                            (go (while true
-                                  ;; TODO: the message to send!
-                                  (trace "updating chat")
-                                  (comms/update-chat!)
-                                  (<! (async/timeout (-> @state/app-state :chat :timeout))))))
+                         [messages-view messages]]))
     :component-did-mount (fn [this]
                            (swap! state/app-state assoc-in [:chat :user]  (.get state/storage :user))
-                           (when (-> @state/app-state :chat :user empty?)
-                             (login)))}))
-
+                           (comms/start-chat)
+                           (let [{:keys [user login]} (:chat @state/app-state)]
+                             (when (empty? user)
+                               (login-user)))
+                           )}))
 
 
 ;; TODO: move this to :component-did-update
@@ -219,6 +229,7 @@
                          [:div {:key node-name
                                 :ref node-name       
                                 :id node-name}]])
+      ;; TODO: put the pins on a layer, on will-mount, delete from that with .clearLayers
       :component-did-mount (fn [this]
                              (let [m (-> utils/L
                                          (.map node-name)
@@ -300,8 +311,31 @@
 
   (ns djdash.views)
 
-  (send-chat "nothing" "hey yoou")
+  (-> @state/app-state :chat :users)
 
+  (-> @state/app-state :chat :messages)
+
+  (swap! state/app-state assoc-in [:chat :messages] [])
+
+  (-> @state/app-state :chat :connected?)
+
+  ((-> @state/app-state :chat :sendMessage) (str "hey " (-> (js/Date.) .toString)))
+
+
+  ((-> @state/app-state :chat :login) "nobody")
+
+  (login-user)
+
+  ((-> @state/app-state :chat :login) (-> @state/app-state :chat :user))
 
   
+  (messages-view (-> @state/app-state :chat :messages))
+
+  (->> @state/app-state :chat :messages
+       (map-indexed #(assoc %2 :idx %1)))
+
+  (->> @state/app-state :chat :messages first)
+
+  ;; NO, will need to use layergroup
+  (some-> @state/app-state :geo :geo-map .-_layers)
   )

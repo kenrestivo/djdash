@@ -1,5 +1,6 @@
 (ns djdash.utils
   (:require [utilza.java :as ujava]
+            [cheshire.core :as json]
             [taoensso.timbre :as log]))
 
 
@@ -32,13 +33,13 @@
 (defn make-retry-fn
   "Retries, with backoff. Logs non-fatal errors as wern, fatal as error"
   ([retry-wait max-retries expand-backoff?]
-  (fn retry
-    [ex try-count http-context]
-    (log/warn ex http-context)
-    (Thread/sleep (if expand-backoff? (* try-count retry-wait) retry-wait))
-    (if (> try-count max-retries) 
-      false
-      (log/error ex try-count http-context))))
+     (fn retry
+       [ex try-count http-context]
+       (log/warn ex http-context)
+       (Thread/sleep (if expand-backoff? (* try-count retry-wait) retry-wait))
+       (if (> try-count max-retries) 
+         false
+         (log/error ex try-count http-context))))
   ([retry-wait max-retries]
      (make-retry-fn retry-wait make-retry-fn true)))
 
@@ -51,3 +52,24 @@
   (if (> try-count max-retries) 
     false
     (log/error ex try-count http-context)))
+
+
+(defmacro catcher 
+  [body]
+  `(try
+     ~@body
+     (catch Exception e#
+       (log/error e#))))
+
+(defn parse-json-payload
+  [^bytes payload]
+  (try
+    (-> payload  
+        (String.  "UTF-8") 
+        (json/decode true))
+    (catch Exception e
+      (log/error e))))
+
+(defn logback
+  [_ _ ^bytes payload]
+  (-> payload parse-json-payload log/info))

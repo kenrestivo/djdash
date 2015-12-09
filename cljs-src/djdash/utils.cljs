@@ -15,9 +15,7 @@
 
 (defn un-json
   [res]
-  (-> res
-      js->clj
-      walk/keywordize-keys))
+  (js->clj res :keywordize-keys true))
 
 (defn jsonp-wrap
   [uri f]

@@ -34,13 +34,13 @@
         bump (fn [timeout] (min (* bump-factor timeout) max-timeout-ms))]
     (future (try
               (log/info "starting request loop")
-              (loop [thrash? false
+              (loop [thrash? true ;; always assume first report is garbage (liquidsoap glitch)
                      timeout timeout-ms
                      prev-playing nil]
                 (let [[playing ch] (async/alts!! [request-ch (async/timeout timeout)])
                       req? (= ch request-ch)]
                   (cond (= playing :quit)  nil;; end here
-                        (and req? (not thrash?)) (do ;; first request, no changes in a while, cool, do it.
+                        (and req? (not thrash?)) (do ;; first request always assumes thrash, this'll be 2nd
                                                    (post-to-hubzilla! settings playing)
                                                    ;; trust no further requests after this, until timeout
                                                    ;; and bump the timeout

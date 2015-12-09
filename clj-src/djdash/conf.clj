@@ -11,6 +11,36 @@
    (s/required-key :port)  s/Int})
 
 
+(def Mqtt
+  {(s/required-key :host)  s/Str
+   (s/required-key :timeout)  s/Int
+   (s/required-key :retry)  s/Int
+   (s/required-key :tries)  (s/either s/Int s/Keyword)
+   (s/required-key :keep-alive)  s/Int
+   (s/required-key :port)  s/Int})
+
+
+(def Chat
+  {(s/required-key :topic)  s/Str
+   (s/required-key :qos) s/Int})
+
+
+(def Cljs
+  {(s/required-key :chat) {(s/required-key :history_url) s/Str
+                           (s/required-key :serv) s/Str
+                           (s/required-key :port) s/Int
+                           (s/optional-key :timeout) s/Int
+                           (s/required-key :chan) s/Str}})
+
+
+
+(def Web
+  {(s/required-key :port)  s/Int
+   (s/required-key :mode)  s/Keyword
+   (s/required-key :cljs) Cljs})
+
+
+
 (def Conf
   {(s/required-key :tailer) {(s/required-key :fpath) s/Str
                              (s/required-key :bufsiz) s/Int
@@ -37,16 +67,16 @@
                            (s/required-key :max-retries) s/Int
                            (s/required-key :retry-wait) s/Int
                            (s/required-key :url)  s/Str}
+   (s/required-key :mqtt)  Mqtt
    (s/required-key :db)  Db
+   (s/required-key :chat)  Chat
    (s/optional-key :nrepl) {(s/required-key :port) s/Int}
    (s/required-key :scheduler)  {(s/required-key :url)  s/Str
                                  (s/required-key :ical-file)  s/Str
                                  (s/required-key :json-schedule-file)  s/Str
                                  (s/required-key :up-next-file)  s/Str
                                  (s/required-key :check-delay)  s/Int}
-   (s/required-key :web-server)  {(s/required-key :port)  s/Int
-                                  (s/required-key :chat-url)  s/Str
-                                  (s/required-key :mode)  s/Keyword}
+   (s/required-key :web-server)  Web
    (s/required-key :timbre)  {(s/required-key :level)  s/Keyword
                               (s/required-key :spit-filename)  s/Str}})
 

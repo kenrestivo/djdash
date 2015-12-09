@@ -17,6 +17,14 @@
       :password "test"
       :host "localhost"
       :port 5432}
+ :chat {:topic "test-chat"
+        :qos 2}
+ :mqtt {:host "localhost"
+        :timeout 20
+        :keep-alive 30
+        :retry 10000
+        :tries :unlimited
+        :port 1883}
  :geo {:api-key "key-here"
        :max-retries 5
        :retry-wait 5000
@@ -37,4 +45,9 @@
              :check-delay 60000}
  :web-server {:mode :dev
               :port 8080
-              :chat-url "http://lamp/spaz/radio/chatster/doUpdate.php"}}
+              :cljs {:chat {:history_url "http://localhost:8080/chatlog"
+                            :serv "radio.spaz.org"
+                            :port 1884
+                            :chan "test-chat"
+                            :timeout 10000}}}}
+

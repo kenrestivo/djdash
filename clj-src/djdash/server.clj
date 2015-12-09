@@ -14,7 +14,7 @@
   (let [{:keys [ch-recv send-fn ajax-post-fn 
                 ajax-get-or-ws-handshake-fn connected-uids]}
         (sente/make-channel-socket! 
-         skit/sente-web-server-adapter 
+         skit/http-kit-adapter
          ;; just use the clientid as the user id
          {:user-id-fn :client-id})
         recv-pub (async/pub ch-recv :id (fn [_] (async/sliding-buffer 1000)))
@@ -29,7 +29,7 @@
     ))
 
 
-(defrecord Server [settings srv sente]
+(defrecord Server [settings srv sente dbc]
   component/Lifecycle
   (start
     [this]
@@ -38,14 +38,16 @@
       (try
         (log/info "starting webserver " (:settings this))
         ;; TODO: there are many more params to httpsrv/run-server fyi. expose some?
-        (let [sente (setup-sente)]
+        (let [sente (setup-sente)
+              dbc (-> this :db :conn)]
           (log/info "server not running yet, starting it...")
-          (-> this
-              (assoc :sente sente)
-              (assoc  :srv (-> this
-                               :settings
-                               (web/make-handler sente)
-                               (kit/run-server  {:port (-> this :settings :port)})))))
+          (assoc this 
+            :sente sente
+            :dbc dbc
+            :srv (-> this
+                     :settings
+                     (web/make-handler sente dbc)
+                     (kit/run-server  {:port (-> this :settings :port)}))))
         (catch Exception e
           (log/error e "<- explosion in webserver start")
           (log/error (.getCause e) "<- was cause of explosion" )))))
@@ -60,9 +62,10 @@
         ;; TODO: shut down sente channels
         ((:srv this))
         ;; (srv) shuts it down, be sure to return the component either way!
-        (-> this
-            (assoc  :srv nil)
-            (assoc :sente nil))))))
+        (assoc this  
+          :srv nil
+          :sente nil
+          :dbc nil)))))
 
 
 
@@ -73,7 +76,7 @@
   (try
     (component/using
      (map->Server {:settings settings})
-     [:log]) 
+     [:log :db]) 
     (catch Exception e
       (println e))))
 

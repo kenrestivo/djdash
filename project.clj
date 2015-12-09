@@ -8,8 +8,13 @@
                  [com.taoensso/sente "1.6.0" :exclusions [io.aviso/pretty com.taoensso/encore]]
                  [prismatic/schema "1.0.3"]
                  [com.stuartsierra/component "0.3.0"]
+                 [clojurewerkz/machine_head "1.0.0-beta9"
+                  :exclusions [com.google.guava/guava]]
                  [org.clojure/data.zip "0.1.1"]
                  [camel-snake-kebab "0.3.2"]
+                 [ring.middleware.jsonp "0.1.6" 
+                  :exclusions [ring/ring-core]]
+                 [robert/bruce "0.8.0"]
                  [enlive "1.1.6"]
                  [reagent "0.5.1"
                   :exclusions [org.clojure/tools.reader]]
@@ -25,7 +30,7 @@
                   :exclusions [org.clojure/clojure]]
                  [honeysql "0.6.2"]
                  [environ "1.0.1"]
-                 [http-kit "2.1.19"]
+                 [com.taoensso.forks/http-kit "2.1.20"]
                  [utilza "0.1.77"]
                  [org.clojure/tools.nrepl "0.2.11"]
                  [clj-ical "1.1" :exclusions [clj-time]]
@@ -34,19 +39,14 @@
                  [com.taoensso/timbre "4.1.4"]
                  [org.clojure/tools.reader "1.0.0-alpha1"]
                  [cheshire "5.5.0"]
-                 [stencil "0.5.0"]
+                 [stencil "0.5.0"
+                  :exclusions [org.clojure/core.cache]]
                  [clj-http "2.0.0"]
                  [com.andrewmcveigh/cljs-time "0.3.14" :exclusions [com.cemerick/austin]]
                  [org.clojure/tools.trace "0.7.9"]
-                 [org.clojure/core.async "0.2.371"]
+                 [org.clojure/core.async "0.2.374"]
                  ]
 
-  :plugins [[lein-pdo "0.1.1"]
-            [lein-cljsbuild "1.1.1"]
-            [lein-figwheel "0.5.0-2"
-                              :exclusions [org.clojure/tools.reader ring/ring-core]]
-            [migratus-lein "0.2.0"
-             :exclusions [org.clojure/clojure]]]
   ;;:hooks [leiningen.cljsbuild]
   :main djdash.core
 
@@ -67,11 +67,19 @@
                                     :target]
   :profiles {:dev {:repl-options {:nrepl-middleware [cemerick.piggieback/wrap-cljs-repl]}
                    :source-paths ["clj-src" "cljs-src" "dev"]
+                   :plugins [[lein-cljsbuild "1.1.1"]
+                             [lein-figwheel "0.5.0-2"
+                              :exclusions [org.clojure/tools.reader
+                                           org.clojure/clojure
+                                           ring/ring-core]]
+                             [migratus-lein "0.2.0"
+                              :exclusions [org.clojure/clojure]]] 
                    :dependencies [[org.slf4j/log4j-over-slf4j "1.7.12"]
                                   [com.cemerick/piggieback "0.2.1"]
                                   [figwheel-sidecar "0.5.0-2"
                                    :exclusions [org.clojure/tools.reader
                                                 org.clojure/core.async
+                                                http-kit
                                                 ring/ring-core]]
                                   [org.slf4j/slf4j-simple "1.7.12"]]}
              :uberjar {:prep-tasks [["cljsbuild" "once" "release"] "javac" "compile"]

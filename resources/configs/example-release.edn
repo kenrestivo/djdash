@@ -18,12 +18,20 @@
                :fake-json-file "/home/streams/playing"
                :fake-jsonp-file "/home/streams/playing-jsonp"
                :port 8050}
+ :chat {:topic "chat"
+        :qos 2}
  :db {:db "djdash"
       :user "test"
       :password "test"
       :host "localhost"
       :port 5432}
  :nrepl {:port 7778}
+ :mqtt {:host "localhost"
+        :timeout 20
+        :retry 10000
+        :tries :unlimited
+        :keep-alive 30
+        :port 1883}
  :geo {:api-key "key-here"
        :ratelimit-delay-ms 500
        :max-retries 5
@@ -35,7 +43,11 @@
              :up-next-file "/home/streams/up-next"
              :check-delay 10000}
  :web-server {:port 8080
-              :chat-url "http://spaz.org/radio/chatster/doUpdate.php"
+              :cljs {:chat {:history_url "http://localhost:8080/chatlog"
+                            :serv "radio.spaz.org"
+                            :port 1884
+                            :chan "chat"
+                            :timeout 10000}}
               :mode :release}
  :timbre {:level :info
           :spit-filename "/tmp/web.log"}}
