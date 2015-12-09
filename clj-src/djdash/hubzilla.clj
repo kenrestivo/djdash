@@ -60,7 +60,7 @@
                                        (log/trace "we've waited, no changes, resetting timeout"
                                                   prev-playing timeout)
                                        ;; resetting everything back to defaults for next round
-                                       (recur false timeout-ms nil)))))
+                                       (recur true timeout-ms nil)))))
               (catch Exception e
                 (log/error e)))
             (log/info "exiting request loop"))
