@@ -17,7 +17,7 @@
                                     :username user}])
                        sql/format))
     (catch Exception e
-      (log/error e (.getCause *e)))))
+      (log/error e (.getCause e)))))
 
 
 (defn start-chat-listen-loop
