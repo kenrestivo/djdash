@@ -146,6 +146,7 @@
       [:input (merge props
                      {:type "text" 
                       :value @val 
+                      :disabled (-> @state/app-state :chat :connected? not)
                       :placeholder title
                       :id "chatinput"
                       :on-change #(reset! val (-> % .-target .-value))
