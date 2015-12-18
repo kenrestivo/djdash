@@ -33,8 +33,9 @@
 
 
 
-(defn send-msg [{:keys [conn]} chan msg qos]
-  (mh/publish conn chan  (json/encode msg) qos))
+(defn send-msg [{:keys [conn]} {:keys [chan msg qos retained?]}]
+  (log/debug "sending" chan msg qos retained?)
+  (mh/publish conn chan (json/encode msg) qos retained?))
 
 
 (s/defn subscribe*
@@ -84,6 +85,8 @@
              ;; disconnected, possibly?
              :subscribe (subscribe conn subscriptions msg)
              ;;:unsubscribe (unsubscribe subscriptions msg)
+             ;; TODO: send!
+             :send (send-msg conn msg)
              :quit (log/info "got quit message")
              (log/error "no such command" cmd))
            (catch Exception e
