@@ -10,6 +10,8 @@
 
 (defn start-tailer
   [fpath queue file-check-delay]
+  (when-not (-> fpath jio/file .exists)
+    (throw (Exception. (str "No such file as" fpath))))
   (let [f (jio/file fpath)
         listener-adapter (proxy [TailerListenerAdapter] []
                            (handle [str]
@@ -88,16 +90,22 @@
 
 (defn stop
   [{:keys [tailer-thread queue chunk-thread] :as old}]
-  (when (not (nil? chunk-thread)) (future-cancel tailer-thread))
-  (some-> tailer-thread .stop))
+  (try
+    (when (not (nil? chunk-thread)) (future-cancel tailer-thread))
+    (some-> tailer-thread .stop)
+    (catch Exception e
+      (log/error e))))
 
 (defn start
   [{:keys [fpath bufsiz file-check-delay chunk-delay] :as settings} sente]
   ;; TODO: could core.async channel instead
-  (let [queue (ConcurrentLinkedQueue.)]
-    {:queue queue
-     :chunk-thread (start-chunker queue sente chunk-delay)
-     :tailer-thread (start-tailer fpath queue file-check-delay)}))
+  (try
+    (let [queue (ConcurrentLinkedQueue.)]
+      {:queue queue
+       :chunk-thread (start-chunker queue sente chunk-delay)
+       :tailer-thread (start-tailer fpath queue file-check-delay)})
+    (catch Exception e
+      (log/error e))))
 
 
 
