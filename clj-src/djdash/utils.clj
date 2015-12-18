@@ -73,3 +73,22 @@
 (defn logback
   [_ _ ^bytes payload]
   (-> payload parse-json-payload log/info))
+
+
+(defn map-vals
+  "Takes a map and applies f to all vals of it"
+  [f m]
+  (into {} (for [[k v] m] [k (f v)])))
+
+
+
+(defn dissoc-vector
+  "Given vector v and a seq of positions to dissoc from it,
+     returns a vector with those positions removed"
+  [v ks]
+  (->>  v
+        (map-indexed vector)
+        (into (sorted-map))
+        (#(apply dissoc % ks))
+        vals
+        vec))

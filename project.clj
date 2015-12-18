@@ -1,4 +1,4 @@
-(defproject djdash "0.1.11"
+(defproject djdash "0.1.12"
   :description "Dashboard for SPAZ Radio"
   :url "http://spaz.org/radio"
 
@@ -7,6 +7,7 @@
                  [cljs-http "0.1.37"]
                  [com.taoensso/sente "1.6.0" :exclusions [io.aviso/pretty com.taoensso/encore]]
                  [prismatic/schema "1.0.3"]
+                 [hiccup "1.0.5"]
                  [com.stuartsierra/component "0.3.0"]
                  [clojurewerkz/machine_head "1.0.0-beta9"
                   :exclusions [com.google.guava/guava]]

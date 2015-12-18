@@ -39,4 +39,6 @@
 
   (log/error (Exception. "foobar"))
   
+  (clojure.tools.trace/trace-vars #'foobar)
+  
   )

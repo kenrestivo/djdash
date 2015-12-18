@@ -4,6 +4,7 @@
             [djdash.geolocate :as geo]
             [djdash.log :as dlog]
             [djdash.nrepl :as n]
+            [djdash.sente :as sente]
             [schema.core :as s]
             [djdash.conf :as conf]
             [djdash.db :as db]
@@ -32,6 +33,7 @@
    :chat (chat/create-chat chat)
    :mqtt (mqtt/create-mqtt mqtt)
    :nrepl (n/create-nrepl nrepl)
+   :sente (sente/create-sente)
    :geo   (geo/create-geo geo)
    :hubzilla   (hubzilla/create-hubzilla hubzilla)
    :nowplaying (nowplaying/create-nowplaying now-playing)

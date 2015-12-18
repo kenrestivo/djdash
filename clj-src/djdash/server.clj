@@ -9,27 +9,9 @@
 
 
 
-(defn setup-sente
-  []
-  (let [{:keys [ch-recv send-fn ajax-post-fn 
-                ajax-get-or-ws-handshake-fn connected-uids]}
-        (sente/make-channel-socket! 
-         skit/http-kit-adapter
-         ;; just use the clientid as the user id
-         {:user-id-fn :client-id})
-        recv-pub (async/pub ch-recv :id (fn [_] (async/sliding-buffer 1000)))
-        ]
-    {:ring-ajax-post                ajax-post-fn
-     :ring-ajax-get-or-ws-handshake ajax-get-or-ws-handshake-fn
-     :ch-chsk                       ch-recv 
-     :chsk-send!                    send-fn
-     :recv-pub                      recv-pub
-     :connected-uids                connected-uids 
-     }
-    ))
 
 
-(defrecord Server [settings srv sente dbc]
+(defrecord Server [settings srv sente dbc schedule-agent]
   component/Lifecycle
   (start
     [this]
@@ -38,15 +20,17 @@
       (try
         (log/info "starting webserver " (:settings this))
         ;; TODO: there are many more params to httpsrv/run-server fyi. expose some?
-        (let [sente (setup-sente)
+        (let [sente (-> this :sente :sente)
+              schedule-agent (-> this :scheduler :scheduler-internal :schedule)
               dbc (-> this :db :conn)]
           (log/info "server not running yet, starting it...")
           (assoc this 
             :sente sente
             :dbc dbc
+            :schedule-agent schedule-agent
             :srv (-> this
                      :settings
-                     (web/make-handler sente dbc)
+                     (web/make-handler sente dbc schedule-agent)
                      (kit/run-server  {:port (-> this :settings :port)}))))
         (catch Exception e
           (log/error e "<- explosion in webserver start")
@@ -65,6 +49,7 @@
         (assoc this  
           :srv nil
           :sente nil
+          :schedule-agent nil
           :dbc nil)))))
 
 
@@ -76,7 +61,7 @@
   (try
     (component/using
      (map->Server {:settings settings})
-     [:log :db]) 
+     [:log :db :sente :scheduler]) 
     (catch Exception e
       (println e))))
 
@@ -101,5 +86,9 @@
   
   (srv)
 
-  
+  (->> @sys/system :web-server :schedule-agent deref :future)
+
+
+  (-> @sys/system :web-server  :scheduler :scheduler-internal :schedule)
+
   )

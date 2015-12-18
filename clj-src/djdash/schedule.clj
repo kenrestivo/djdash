@@ -1,8 +1,10 @@
 (ns djdash.schedule
   (:require [cheshire.core :as json]
             [cheshire.generate :as jgen]
-            [clj-ical.format :as ical]
             [clj-time.coerce :as coerce]
+            [djdash.schedule.public :as pub]
+            [djdash.schedule.ical :as ical]
+            [clj-time.core :as time]
             [clj-time.format :as fmt]
             [clojure.core.async :as async]
             [com.stuartsierra.component :as component]
@@ -21,16 +23,19 @@
                          (jgen/encode-long jg))))
 
 
+(jgen/add-encoder  org.joda.time.DateTime
+                   (fn [c jg]
+                     (-> c
+                         coerce/to-long
+                         (jgen/encode-long jg))))
+
+
+
 ;; the server supplying the json with the schedule
 ;; is assumed to always at least pretend to be on the west coast of the usa.
 (def read-df
   (doto (SimpleDateFormat. "yyyy-MM-dd HH:mm", Locale/US)
     (.setTimeZone (TimeZone/getTimeZone "America/Los_Angeles"))))
-
-(defn ->ical-fix
-  [s]
-  (with-out-str
-    (-> s ical/write-object)))
 
 
 (defn datefix
@@ -93,27 +98,6 @@
       (log/error e)
       (str "Error Connecting" "..."))))
 
-
-
-
-(defn ->ical
-  [sched]
-  (->ical-fix
-   `[:vcalendar
-     [:version "2.0"]
-     [:method "PUBLISH"]
-     [:prodid "-//S.P.A.z. Radio//spazradio//EN"]
-     ~@(for [{:keys [url name end_timestamp start_timestamp]} (:future sched)]
-         [:vevent
-          [:summary name]
-          [:uid (-> start_timestamp
-                    org.joda.time.DateTime.
-                    coerce/to-long)]
-          [:url "http://spaz.org/radio"]
-          [:dtend   (fmt/unparse (fmt/formatters :basic-date-time-no-ms)
-                                 (org.joda.time.DateTime. end_timestamp))]
-          [:dtstart   (fmt/unparse (fmt/formatters :basic-date-time-no-ms)
-                                   (org.joda.time.DateTime. start_timestamp))]])]))
 
 
 (defn update-schedule-fn
@@ -196,8 +180,8 @@
 (defn watch-schedule-fn
   [sente ical-file next-up-file json-schedule-file]
   (fn [k r o n]
-    (let [old-future (-> o :future first)
-          new-future (-> n :future first)]
+    (let [old-future (-> o :future)
+          new-future (-> n :future)]
       (log/trace k "schedule atom watch updated")
       (when (not= old-future new-future)
         (do
@@ -206,24 +190,25 @@
             (try
               (log/info "dumping schedule to" ical-file)
               (->> n
-                   ->ical
+                   ical/->ical
                    (spit ical-file))
               (catch Exception e
                 (log/error e))))
           (try 
-            (->> n
-                 :future
+            (->> new-future
                  json/encode
                  (spit json-schedule-file))
             (catch Exception e
               (log/error e)))
           (try 
             (->> new-future
+                 first
                  json/encode
                  fake-jsonp
                  (spit next-up-file))
             (catch Exception e
               (log/error e)))
+          ;; TODO: update the spaz.org calendar
           (utils/broadcast sente :djdash/next-shows n))))))
 
 
@@ -252,8 +237,8 @@
     (log/info "starting scheduler " (:settings this))
     (if scheduler-internal
       this 
-      (let [scheduler-internal (start-scheduler (:settings this) (-> this :web-server :sente))
-            listen-loop (schedule-listen-loop (-> this :web-server :sente) scheduler-internal)]
+      (let [scheduler-internal (start-scheduler (:settings this) (-> this :sente :sente))
+            listen-loop (schedule-listen-loop (-> this :sente :sente) scheduler-internal)]
         (log/debug "start-scheduler and schedule-listen-loop returned")
         (assoc this :scheduler-internal (merge scheduler-internal
                                                {:quit-chan listen-loop})))))
@@ -274,7 +259,7 @@
   (log/info "schedule " settings)
   (component/using
    (map->Schedule {:settings settings})
-   [:log :web-server]))
+   [:log :sente]))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -300,48 +285,5 @@
   (log/set-level! :info)
   
 
-  ;; for debugging
-  (update-schedule 
-   (->> @sys/system :scheduler :scheduler-internal :schedule)
-   (->> @sys/system :scheduler :settings :url))
-
-  (.getCause *e)
-
-  (->> @sys/system :scheduler :scheduler-internal :schedule restart-agent)
-
-  (->> @sys/system :scheduler :scheduler-internal :schedule)
-
-  (->> @sys/system :scheduler :scheduler-internal :schedule deref  (urepl/massive-spew "/tmp/foo.edn"))
-  
-  (defonce fake-schedule (atom {:current []
-                                :future []}))
-  
-  
-  (->> "http://localhost/schedule-test/week-info"
-       (update-schedule fake-schedule )
-       (urepl/massive-spew "/tmp/foo.edn"))
-
-  (->> "http://spazradio.bamfic.com/api/week-info"
-       (update-schedule fake-schedule )
-       (urepl/massive-spew "/tmp/foo.edn"))
-
-
-  ;; for testing
-  (->> @sys/system
-       :scheduler
-       :scheduler-internal
-       :schedule
-       deref
-       ->ical
-       (spit "/home/www/spazradio.ics"))
-
-  (->> "http://radio.spaz.org/api/week-info"
-       fetch-schedule
-       (split-by-current (java.util.Date.))
-       (urepl/massive-spew "/tmp/foo.edn"))
-
-
-
 
   )
-
