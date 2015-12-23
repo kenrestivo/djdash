@@ -24,6 +24,9 @@
                  [compojure "1.4.0"] 
                  [ring "1.4.0"]
                  [me.raynes/conch "0.8.0"]
+                 [incanter/incanter-charts "1.5.6"
+                  :exclusions [junit]]
+                 [incanter/incanter-pdf "1.5.6"]
                  [hikari-cp "1.3.1"]
                  [org.clojure/java.jdbc "0.4.2"]
                  [org.postgresql/postgresql "9.3-1103-jdbc41"]
