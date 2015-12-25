@@ -176,6 +176,7 @@
   []
   (reagent/create-class 
    {:display-name "chat-view"
+    ;; TODO: add a did-update for messages, and re-enable the send box
     :reagent-render (fn []
                       (let [{:keys [user messages sendMessage]} (-> @state/app-state :chat)]
                         [:div {:id "chat"}
@@ -186,6 +187,7 @@
                                      :class "handle"}
                              (str user ": ")]
                             [chat-input {:title "Say something here." 
+                                         ;; TODO: also spinner on the input and disable it.
                                          :on-save sendMessage}]
                             ])
                          [messages-view messages]]))
