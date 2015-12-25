@@ -48,6 +48,7 @@
               :cljs {:chat {:history_url "http://localhost:8080/chatlog"
                             :serv "radio.spaz.org"
                             :port 1884
+                            :presence_chan "test-presence"
                             :chan "test-chat"
                             :timeout 10000}}}}
 
