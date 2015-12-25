@@ -2,6 +2,7 @@
 var spaz_radio_chat = (function (options) {
 
     var settings = {'port':  Number(1884),
+		    'presence_chan': 'presence',
 		    'timeout': 10000};
 
     $.extend(settings, options);
@@ -15,7 +16,6 @@ var spaz_radio_chat = (function (options) {
 	return {};
     }
 
-    var presence_chan = 'presence/#';
 
     var fakeid = 'mut' + generateUIDNotMoreThan1million();
     var username = "";
@@ -45,7 +45,7 @@ var spaz_radio_chat = (function (options) {
     }
 
     function subscribe_presence(){
-	conn.subscribe(presence_chan, {'qos': 2});
+	conn.subscribe(settings.presence_chan + '/#', {'qos': 2});
     }
 
 
@@ -58,7 +58,7 @@ var spaz_radio_chat = (function (options) {
 	    x = "";
 	}
 	var msg = new Paho.MQTT.Message(x);
-	msg.destinationName = 'presence/' + fakeid;
+	msg.destinationName = settings.presence_chan + '/' + fakeid;
 	msg.qos = 2;
 	msg.retained = true;
 	conn.send(msg);
