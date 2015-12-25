@@ -28,6 +28,7 @@
 (def Cljs
   {(s/required-key :chat) {(s/required-key :history_url) s/Str
                            (s/required-key :serv) s/Str
+                           (s/optional-key :presence_chan) s/Str
                            (s/required-key :port) s/Int
                            (s/optional-key :timeout) s/Int
                            (s/required-key :chan) s/Str}})
