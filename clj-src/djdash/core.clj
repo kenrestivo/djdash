@@ -109,6 +109,8 @@
   (init (assoc-in env/env [:web-server :mode] :release))
   (start)
   
+  (stop)
+  
   (keys env/env)
   (:timbre env/env)
   (go env/env)

@@ -91,7 +91,7 @@
 (defn stop
   [{:keys [tailer-thread queue chunk-thread] :as old}]
   (try
-    (when (not (nil? chunk-thread)) (future-cancel tailer-thread))
+    (some-> chunk-thread future-cancel)
     (some-> tailer-thread .stop)
     (catch Exception e
       (log/error e))))
