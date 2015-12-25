@@ -126,12 +126,13 @@
     [:div  {:id "user-section"}
      [:ul  {:class "list-inline"}
       ;; TODO: turn the text red or put an LED there to indicate chat is connected
-      (cons [:li  {:class (when connected? "text-label") :key "in-chat-now"} "In Chat Now:"]
+      (cons [:li  {:class (when connected? "text-label") 
+                   :key "in-chat-now"} 
+             "In Chat Now:"]
             (for [u users]
               [:li  {:class "label label-default paddy"
                      :key u ;;; XXX baaaad, not unique?
-                     ;; TODO: why am i setting the html anyway?
-                     :dangerouslySetInnerHTML   {:__html u}}]))]]))
+                     } u]))]]))
 
 
 ;; lifted from todomvc
