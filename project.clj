@@ -96,6 +96,8 @@
                                   "-XX:MaxMetaspaceSize=56m"]}
              :repl {:timeout 180000
                     :injections [(do ;; implicit?
+                                   (require 'user)
+                                   (user/start) ;; for figwheel
                                    (require 'djdash.core)
                                    (djdash.core/-main))
                                  ]}}
