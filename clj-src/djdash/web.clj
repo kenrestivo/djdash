@@ -26,9 +26,9 @@
 (defn cors-ify
   [resp]
   (-> resp
+      (r/header "Content-Type" "application/json; charset=utf-8")
       (r/header "Access-Control-Allow-Origin" "*")
       (r/header "Access-Control-Allow-Methods" "GET, OPTIONS")
-      (r/header "Content-Type" "application/json; charset=utf-8")
       (r/header "Access-Control-Allow-Headers" 
                 "Content-Type, Content-Range, Content-Disposition, Content-Description, x-requested-with")))
 
@@ -43,7 +43,6 @@
                                       chatlog/get-log
                                       r/response
                                       cors-ify))
-   (compojure/GET "/error" req (/ 1 0))
    (compojure/GET "/sched/:offset" {:keys [schedule-agent params]}
                   (log/debug params)
                   (-> {:content (shows/calendar (-> params :offset coerce/as-int) schedule-agent)}
