@@ -25,7 +25,7 @@
           (log/info "server not running yet, starting it...")
           (assoc this 
             :srv (-> (web/make-handler)  
-                     (utils/wrap-thing :settings settings)
+                     (utils/wrap :settings settings)
                      (utils/wrap :dbc dbc)
                      (utils/wrap :sente sente)
                      (utils/wrap :schedule-agent schedule-agent)
