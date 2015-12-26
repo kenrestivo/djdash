@@ -13,8 +13,15 @@
             [taoensso.timbre :as log]))
 
 
-;; TODO: wrap exceptions that logs them? or are they logged anyway with timbre?
 
+(defn wrap-exception
+  [handler]
+  (fn [request]
+    (try
+      (handler request)
+      (catch Throwable e
+        (log/error e)
+        (throw e)))))
 
 (defn cors-ify
   [resp]
@@ -62,6 +69,7 @@
       handler/site
       (res/wrap-resource  "public") ;; for css and js
       file-info/wrap-file-info ;; for correct mime types
+      wrap-exception
       ))
 
 
