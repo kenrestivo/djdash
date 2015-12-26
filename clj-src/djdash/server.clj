@@ -24,9 +24,6 @@
               dbc (-> this :db :conn)]
           (log/info "server not running yet, starting it...")
           (assoc this 
-            :sente sente
-            :dbc dbc
-            :schedule-agent schedule-agent
             :srv (-> (web/make-handler)  
                      (utils/wrap-thing :settings settings)
                      (utils/wrap :dbc dbc)
@@ -48,10 +45,7 @@
         ((:srv this))
         ;; (srv) shuts it down, be sure to return the component either way!
         (assoc this  
-          :srv nil
-          :sente nil
-          :schedule-agent nil
-          :dbc nil)))))
+          :srv nil)))))
 
 
 
