@@ -287,7 +287,7 @@
       this 
       (try
         (-> this
-            (assoc :sente (-> this :web-server :sente))
+            (assoc :sente (-> this :sente :sente))
             (assoc :dbc (-> this :db :conn)) ;; need local ref
             start-geo )
         (catch Exception e
@@ -316,7 +316,7 @@
   ;; TODO: verify all the settings are there and correct
   (component/using
    (map->Geo {:settings settings})
-   [:log :db :web-server]))
+   [:log :db :web-server :sente]))
 
 
 
