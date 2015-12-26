@@ -234,7 +234,7 @@
     (if nowplaying-internal
       this 
       (let [nowplaying-internal (start-nowplaying (:settings this)
-                                                  (-> this :web-server :sente)
+                                                  (-> this :sente :sente)
                                                   (-> this :geo :request-ch)
                                                   (-> this :hubzilla :request-ch))
             listen-loop (nowplaying-listen-loop (-> this :web-server :sente) nowplaying-internal)]
@@ -259,7 +259,7 @@
   (log/info "nowplaying " settings)
   (component/using
    (map->Nowplaying {:settings settings})
-   [:log :geo :web-server :hubzilla]))
+   [:log :geo :web-server :sente :hubzilla]))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
