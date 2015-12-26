@@ -2,12 +2,11 @@
   (:require [clojure.core.async :as async]
             [com.stuartsierra.component :as component]
             [djdash.web :as web]
+            [djdash.utils :as utils]
             [org.httpkit.server :as kit]
             [taoensso.sente :as sente]
             [taoensso.sente.server-adapters.http-kit :as skit]
             [taoensso.timbre :as log]))
-
-
 
 
 
@@ -28,9 +27,11 @@
             :sente sente
             :dbc dbc
             :schedule-agent schedule-agent
-            :srv (-> this
-                     :settings
-                     (web/make-handler sente dbc schedule-agent)
+            :srv (-> (web/make-handler)  
+                     (utils/wrap-thing :settings settings)
+                     (utils/wrap-thing :dbc dbc)
+                     (utils/wrap-thing :sente sente)
+                     (utils/wrap-thing :schedule-agent schedule-agent)
                      (kit/run-server  {:port (-> this :settings :port)}))))
         (catch Exception e
           (log/error e "<- explosion in webserver start")
@@ -78,9 +79,6 @@
 
   (def s (setup-sente))
 
-  (def h (web/make-handler {:mode :dev,
-                            :chat-url "http://lamp/spaz/radio/chatster/doUpdate.php"}
-                           s))
 
   (def srv (kit/run-server h {:port 8080}))
   

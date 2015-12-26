@@ -95,7 +95,10 @@
   (stop)
   (reset)
 
-  (future (-main "config.edn"))
+  (do 
+    (stop)
+    (future (-main "config.edn"))
+    )
 
   (future (go env/env))
   

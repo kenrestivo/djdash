@@ -92,3 +92,9 @@
         (#(apply dissoc % ks))
         vals
         vec))
+
+
+(defn wrap-thing 
+  [handler k thing]
+  (fn [req]
+    (handler (assoc req k thing))))

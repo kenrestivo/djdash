@@ -15,6 +15,7 @@
 
 ;; TODO: wrap exceptions that logs them? or are they logged anyway with timbre?
 
+
 (defn cors-ify
   [resp]
   (-> resp
@@ -27,39 +28,36 @@
 
 
 (defn app-routes
-  [{:keys [mode cljs] :as settings}
-   {:keys [ring-ajax-get-or-ws-handshake ring-ajax-post]}
-   dbc
-   schedule-agent]
-  (log/debug "app routes " settings schedule-agent dbc)
+  []
+  (log/debug "app routes ")
   (compojure/routes 
-   (compojure/GET  "/chatlog" [] (-> dbc 
-                                     chatlog/get-log
-                                     r/response
-                                     cors-ify))
-   (compojure/GET "/sched/:offset" [offset :<< coerce/as-int]
-                  (-> {:content (shows/calendar offset schedule-agent)}
+   (compojure/GET  "/chatlog" req (-> req
+                                      :dbc 
+                                      chatlog/get-log
+                                      r/response
+                                      cors-ify))
+   (compojure/GET "/sched/:offset" {:keys [schedule-agent params]}
+                  (log/debug params)
+                  (-> {:content (shows/calendar (-> params :offset coerce/as-int) schedule-agent)}
                       (json/encode true)
                       r/response
                       cors-ify))
-   (compojure/GET "/ch" req (ring-ajax-get-or-ws-handshake req))
-   (compojure/POST "/ch" req (ring-ajax-post req))
-   (compojure/GET "/" [] (stencil/render-file "templates/index"
-                                              {:js-slug (stencil/render-file
-                                                         (if (= :dev mode)
-                                                           "templates/dev"
-                                                           "templates/rel")
-                                                         {})
-                                               :settings (json/encode cljs)}))))
+   (compojure/GET "/ch" req ((-> req :sente :ring-ajax-get-or-ws-handshake) req))
+   (compojure/POST "/ch" req ((-> req :sente :ring-ajax-post) req))
+   (compojure/GET "/" req (stencil/render-file "templates/index"
+                                               {:js-slug (stencil/render-file
+                                                          (if (= :dev (-> req :settings :mode))
+                                                            "templates/dev"
+                                                            "templates/rel")
+                                                          {})
+                                                :settings (-> req :settings :cljs json/encode)}))))
 
 
 
 (defn make-handler
-  [settings sente dbc schedule-agent]
-  {:pre [(every? (comp not nil?) [settings schedule-agent dbc sente])]}
-  (log/debug "make handler" settings schedule-agent dbc sente)
-  (-> settings
-      (app-routes sente dbc schedule-agent)
+  []
+  (log/debug "make handler")
+  (-> (app-routes)
       jsonp/wrap-json-with-padding
       handler/site
       (res/wrap-resource  "public") ;; for css and js
