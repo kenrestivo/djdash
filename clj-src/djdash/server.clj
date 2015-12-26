@@ -29,9 +29,9 @@
             :schedule-agent schedule-agent
             :srv (-> (web/make-handler)  
                      (utils/wrap-thing :settings settings)
-                     (utils/wrap-thing :dbc dbc)
-                     (utils/wrap-thing :sente sente)
-                     (utils/wrap-thing :schedule-agent schedule-agent)
+                     (utils/wrap :dbc dbc)
+                     (utils/wrap :sente sente)
+                     (utils/wrap :schedule-agent schedule-agent)
                      (kit/run-server  {:port (-> this :settings :port)}))))
         (catch Exception e
           (log/error e "<- explosion in webserver start")

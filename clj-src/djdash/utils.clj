@@ -94,7 +94,7 @@
         vec))
 
 
-(defn wrap-thing 
+(defn wrap
   [handler k thing]
   (fn [req]
     (handler (assoc req k thing))))
