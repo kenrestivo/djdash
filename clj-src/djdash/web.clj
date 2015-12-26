@@ -43,6 +43,7 @@
                                       chatlog/get-log
                                       r/response
                                       cors-ify))
+   (compojure/GET "/error" req (/ 1 0))
    (compojure/GET "/sched/:offset" {:keys [schedule-agent params]}
                   (log/debug params)
                   (-> {:content (shows/calendar (-> params :offset coerce/as-int) schedule-agent)}

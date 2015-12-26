@@ -237,7 +237,7 @@
                                                   (-> this :sente :sente)
                                                   (-> this :geo :request-ch)
                                                   (-> this :hubzilla :request-ch))
-            listen-loop (nowplaying-listen-loop (-> this :web-server :sente) nowplaying-internal)]
+            listen-loop (nowplaying-listen-loop (-> this :sente :sente) nowplaying-internal)]
         (log/debug "start-nowplaying and nowplaying-listen-loop returned")
         (assoc this :nowplaying-internal (merge nowplaying-internal
                                                 {:quit-chan listen-loop})))))
@@ -259,7 +259,7 @@
   (log/info "nowplaying " settings)
   (component/using
    (map->Nowplaying {:settings settings})
-   [:log :geo :web-server :sente :hubzilla]))
+   [:log :geo :sente :hubzilla]))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
