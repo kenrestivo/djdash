@@ -51,6 +51,7 @@
                                 :options {:subdomains "1234",
                                           :attribution "&copy; <a href='http://www.openstreetmap.org/'>OpenStreetMap</a> <a href='http://www.openstreetmap.org/copyright' title='ODbL'>open license</a>. <a href='http://www.mapquest.com/'>MapQuest</a> <img src='http://developer.mapquest.com/content/osm/mq_logo.png'>"}
                                 :connections {}
+                                :text-label "Listeners Map"
                                 :geo-map nil
                                 :markers {}}
                           :schedule {:data {}

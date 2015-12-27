@@ -177,7 +177,7 @@
   []
   (reagent/create-class 
    {:display-name "chat-view"
-    ;; TODO: add a did-update for messages, and re-enable the send box
+    ;; TODO: add a component-did-update for messages, and re-enable the send box
     :reagent-render (fn []
                       (let [{:keys [user messages sendMessage]} (-> @state/app-state :chat)]
                         [:div {:id "chat"}
@@ -221,15 +221,16 @@
 
 
 
-
 (defn geo-map
   []
   (let [{:keys [node-name options url]} (@state/app-state :geo)]
     (reagent/create-class 
-     {:display-name "geo-map"
+     {:display-name node-name
+      :component-did-update (fn [this x y]
+                              (log/info "foo"))
       :reagent-render (fn []
                         [:div
-                         [:div {:class "text-label"} "Listeners Map"]
+                         [:div {:class "text-label"} (-> @state/app-state :geo :text-label)]
                          [:div {:key node-name
                                 :ref node-name       
                                 :id node-name}]])
