@@ -20,7 +20,7 @@
     (try
       (handler request)
       (catch Throwable e
-        (log/error e)
+        (log/error e request)
         (throw e)))))
 
 (defn cors-ify

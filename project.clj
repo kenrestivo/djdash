@@ -79,13 +79,15 @@
                              [migratus-lein "0.2.0"
                               :exclusions [org.clojure/clojure]]] 
                    :dependencies [[org.slf4j/log4j-over-slf4j "1.7.12"]
+                                  [org.slf4j/slf4j-simple "1.7.12"]
+                                  ;; for migratus. can't use timbre-slf4j because
+                                  ;; http://yogthos.net/posts/2015-12-26-AOTGotchas.html
                                   [com.cemerick/piggieback "0.2.1"]
                                   [figwheel-sidecar "0.5.0-2"
                                    :exclusions [org.clojure/tools.reader
                                                 org.clojure/core.async
                                                 http-kit
-                                                ring/ring-core]]
-                                  [org.slf4j/slf4j-simple "1.7.12"]]}
+                                                ring/ring-core]]]}
              :uberjar {:prep-tasks [["cljsbuild" "once" "release"] "javac" "compile"]
                        :uberjar-name "djdash.jar"
                        :source-paths ["clj-src" "cljs-src"]
