@@ -23,8 +23,6 @@
 
 
 
-
-
 (defn update-listeners
   [state]
   ;; TODO: only update if it's not checking...!
