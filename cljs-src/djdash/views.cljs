@@ -50,11 +50,12 @@
 (defn login-user
   []
   (let [u (js/prompt "who are you, dj person?")]
-    (when (not (empty? u))
-      (swap! state/app-state (fn [o]
-                               (.set state/storage :user u)
-                               ;; TODO: maybe log them in, but have to wait until the connection happens?
-                               (assoc-in o [:chat :user] u ))))))
+    (when (empty? u)
+      (login-user)) ;; no longer allow anon
+    (swap! state/app-state (fn [o]
+                             (.set state/storage :user u)
+                             ;; TODO: maybe log them in, but have to wait until the connection happens?
+                             (assoc-in o [:chat :user] u )))))
 
 
 
