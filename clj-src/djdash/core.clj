@@ -66,10 +66,6 @@
   (stop)
   (trepl/refresh))
 
-(defn reload [e]
-  (reset)
-  (go e))
-
 
 (defn -main
   [& [conf-file-arg & _]]
@@ -105,7 +101,7 @@
   (into {} @system)
   
   
-  (reload env/env)
+
 
   (reload (assoc-in env/env [:web-server :mode] :release))
 
