@@ -208,7 +208,6 @@
                  (spit next-up-file))
             (catch Exception e
               (log/error e)))
-          ;; TODO: update the spaz.org calendar
           (utils/broadcast sente :djdash/next-shows n))))))
 
 

@@ -134,7 +134,8 @@
   (->> (reduce (fn [acc {:keys [weekday] :as show}]  
                  (update-in acc [weekday] conj show))
                (zipmap (range 1 8) 
-                       (repeatedly vector)) shows)
+                       (repeatedly vector)) 
+               shows)
        (into (sorted-map))))
 
 
