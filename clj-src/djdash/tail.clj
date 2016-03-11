@@ -119,7 +119,7 @@
     (log/info "starting tailer " (:settings this))
     (if tailer
       this 
-      (assoc this :tailer (start (:settings this) (-> this :web-server :sente)))))
+      (assoc this :tailer (start (:settings this) (-> this :sente :sente)))))
   (stop
     [this]
     (log/info "stopping tailer " (:settings this))
@@ -137,7 +137,7 @@
   (log/info "tail " settings)
   (component/using
    (map->Tail {:settings settings})
-   [:log :web-server]))
+   [:log :sente]))
 
 
 
