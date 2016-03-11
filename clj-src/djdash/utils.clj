@@ -16,16 +16,6 @@
   (doseq [u (some-> connected-uids deref :any)]
     (chsk-send! u [k data])))
 
-(defn broadcast-sys
-  "fishes the webserver->sente out of system, and sends a broadcast to everyone"
-  [system k data]
-  (some-> 
-   system 
-   :web-server 
-   :sente
-   (broadcast k data)))
-
-
 
 (defn revision-info
   "Utility for determing the program's revision."
