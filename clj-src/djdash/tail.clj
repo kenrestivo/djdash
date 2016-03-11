@@ -144,6 +144,19 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (comment
 
+  (do
+    (require '[djdash.core :as sys])
+    (require '[utilza.repl :as urepl])
+    )
+
+  (do
+    (swap! sys/system component/stop-system [:tailer])
+    (swap! sys/system component/start-system [:tailer])
+    )
+
+  (log/merge-config! {:ns-whitelist ["djdash.tail"]})
+
+  (log/set-level! :trace)
 
 
 

@@ -13,13 +13,17 @@
 (defn broadcast
   "sends a broadcast to everyone"
   [{:keys [connected-uids chsk-send!]} k data]
-  (doseq [u (:any @connected-uids)]
+  (doseq [u (some-> connected-uids deref :any)]
     (chsk-send! u [k data])))
 
 (defn broadcast-sys
   "fishes the webserver->sente out of system, and sends a broadcast to everyone"
   [system k data]
-  (broadcast (-> system :web-server :sente) k data))
+  (some-> 
+   system 
+   :web-server 
+   :sente
+   (broadcast k data)))
 
 
 
