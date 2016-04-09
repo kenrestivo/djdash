@@ -30,8 +30,6 @@
    :log (dlog/start-log timbre)
    :tailer (tail/create-tailer tailer)
    :db   (db/create-db db)
-   :chat (chat/create-chat chat)
-   :mqtt (mqtt/create-mqtt mqtt)
    :nrepl (n/create-nrepl nrepl)
    :sente (sente/create-sente)
    :geo   (geo/create-geo geo)

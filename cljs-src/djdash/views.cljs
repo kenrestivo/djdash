@@ -293,22 +293,17 @@
     ;; left column
     [:div  {:class "col-md-6"} 
      [:div {:class "to-top"}
-      [:h2   "SPAZ Radio DJ Dashboard"]]
-     [playing-view]
-     [:div 
-      [listeners-view]
-      [flot (:playing @state/app-state) :playing]]
+      [:h2   "KNYO DJ Dashboard"]]
      [:div 
       [:div {:class "text-label"} "DJ Connection Quality"]
-      [flot (:buffer @state/app-state) :buffer]]]
-
+      [flot (:buffer @state/app-state) :buffer]]
+     [scheduled-now-view]
+     [schedule-view]]
     ;; right column
     [:div  {:class "col-md-6"} 
+     [:div
+      [listeners-view]]
      [geo-map]
-     [scheduled-now-view]
-     [schedule-view]
-     [chat-users]
-     [chat-view]
      ]]])
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
