@@ -1,6 +1,6 @@
 (defproject djdash "0.1.14"
-  :description "Dashboard for SPAZ Radio"
-  :url "http://spaz.org/radio"
+  :description "Dashboard for KNYO"
+  :url "http://knyo.org"
 
   :dependencies [[org.clojure/clojure "1.7.0"]
                  [org.clojure/clojurescript "1.7.170"] 
