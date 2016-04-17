@@ -23,9 +23,6 @@
 
 (defn make-system
   [{:keys [timbre tailer web-server chat mqtt nrepl db geo scheduler hubzilla now-playing]}]
-  ;; TODO: hack! just use schema
-  {:pre  [(every? identity (map map? [timbre chat mqtt db tailer hubzilla scheduler 
-                                      now-playing geo web-server]))]} 
   (component/system-map
    :log (dlog/start-log timbre)
    :tailer (tail/create-tailer tailer)
@@ -33,7 +30,6 @@
    :nrepl (n/create-nrepl nrepl)
    :sente (sente/create-sente)
    :geo   (geo/create-geo geo)
-   :hubzilla   (hubzilla/create-hubzilla hubzilla)
    :nowplaying (nowplaying/create-nowplaying now-playing)
    :scheduler (schedule/create-scheduler scheduler)
    :web-server (srv/start-server web-server)
