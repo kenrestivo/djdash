@@ -47,14 +47,6 @@
                              (s/required-key :bufsiz) s/Int
                              (s/required-key :file-check-delay) s/Int
                              (s/required-key :chunk-delay) s/Int}
-   (s/required-key :hubzilla) {(s/required-key :url) s/Str
-                               (s/required-key :channel)  s/Str
-                               (s/required-key :login)  s/Str
-                               (s/required-key :timeout-ms)  s/Int
-                               (s/required-key :max-timeout-ms)  s/Int
-                               (s/required-key :bump-factor)  (s/pred float? "float")
-                               (s/required-key :listen)  s/Str
-                               (s/required-key :pw)  s/Str}
    (s/required-key :now-playing)  {(s/required-key :check-delay)  s/Int
                                    (s/required-key :host)  s/Str
                                    (s/required-key :adminuser)  s/Str
@@ -68,9 +60,7 @@
                            (s/required-key :max-retries) s/Int
                            (s/required-key :retry-wait) s/Int
                            (s/required-key :url)  s/Str}
-   (s/required-key :mqtt)  Mqtt
    (s/required-key :db)  Db
-   (s/required-key :chat)  Chat
    (s/optional-key :nrepl) {(s/required-key :port) s/Int}
    (s/required-key :scheduler)  {(s/required-key :url)  s/Str
                                  (s/required-key :ical-file)  s/Str

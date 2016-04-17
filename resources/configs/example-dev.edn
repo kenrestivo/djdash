@@ -1,54 +1,38 @@
-{:timbre {:level :debug
+{:timbre {:level :trace
           :spit-filename "/mnt/sdcard/tmp/web.log4j"}
  :tailer {:fpath "/mnt/sdcard/tmp/foo"
           :bufsiz 10000
           :file-check-delay 2000
           :chunk-delay 10000}
- :hubzilla {:url "https://somewhere"
-            :channel "sumchannel"
-            :listen "http://spaz.org/radio"
-            :timeout-ms 10000
-            :max-timeout-ms 60000
-            :bump-factor 1.5
-            :login "someuser"
-            :pw "somepass"}
- :db {:db "djdash"
-      :user "test"
-      :password "test"
+ :db {:db "x"
+      :user "x"
+      :password "x"
       :host "localhost"
       :port 5432}
- :chat {:topic "test-chat"
-        :qos 2}
- :mqtt {:host "localhost"
-        :timeout 20
-        :keep-alive 30
-        :retry 10000
-        :tries :unlimited
-        :port 1883}
- :geo {:api-key "key-here"
+ :geo {:api-key "x"
        :max-retries 5
        :retry-wait 5000
        :ratelimit-delay-ms 500
-       :url "http://api.ipinfodb.com/v3/ip-city/"}
+       :url "x"}
  :now-playing {:check-delay 10000
                :host "localhost"
-               :adminuser "admin"
                :song-mount "radio"
-               :adminpass "hackme"
                :fake-json-file "/home/www/playing-logs/playing"
                :fake-jsonp-file "/home/www/playing-logs/playing-jsonp"
-               :port 8050}
- :scheduler {:url "http://localhost/schedule-test/week-info"
-             :ical-file "/home/www/spazradio.ics"
-             :up-next-file "/home/www/up-next"
-             :json-schedule-file "/home/www/spazradio.json"
-             :check-delay 60000}
+               :adminuser "admin"
+               :adminpass "x"
+               :port 8040}
+ :scheduler {:url  "http://airtime.knyo.org/api/week-info"
+             :ical-file "/home/www/knyo.ics"
+             :check-delay 60000
+             :json-schedule-file "/home/www/knyo.json"
+             :up-next-file "/home/www/up-next"}
  :web-server {:mode :dev
               :port 8080
               :cljs {:chat {:history_url "http://localhost:8080/chatlog"
                             :serv "radio.spaz.org"
+                            :presence_chan "testpres"
                             :port 1884
-                            :presence_chan "test-presence"
-                            :chan "test-chat"
+                            :chan "test"
                             :timeout 10000}}}}
 
