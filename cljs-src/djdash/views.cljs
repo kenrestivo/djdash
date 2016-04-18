@@ -297,6 +297,7 @@
      [:div 
       [:div {:class "text-label"} "DJ Connection Quality"]
       [flot (:buffer @state/app-state) :buffer]]
+     [playing-view]
      [scheduled-now-view]
      [schedule-view]]
     ;; right column
