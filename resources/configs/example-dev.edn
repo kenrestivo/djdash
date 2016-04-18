@@ -16,7 +16,7 @@
        :url "x"}
  :now-playing {:check-delay 10000
                :host "localhost"
-               :song-mount "radio"
+               :song-mount "128"
                :fake-json-file "/home/www/playing-logs/playing"
                :fake-jsonp-file "/home/www/playing-logs/playing-jsonp"
                :adminuser "admin"
