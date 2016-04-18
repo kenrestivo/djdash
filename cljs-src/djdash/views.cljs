@@ -227,8 +227,8 @@
   (let [{:keys [node-name options url]} (@state/app-state :geo)]
     (reagent/create-class 
      {:display-name node-name
-      :component-did-update (fn [this x y]
-                              (log/info "foo"))
+      ;; :component-did-update (fn [this x y]
+         ;;                     (log/info "foo"))
       :reagent-render (fn []
                         [:div
                          [:div {:class "text-label"} (-> @state/app-state :geo :text-label)]
