@@ -1,8 +1,8 @@
-{:timbre {:level :trace
-          :spit-filename "/mnt/sdcard/tmp/web.log4j"}
- :tailer {:fpath "/mnt/sdcard/tmp/foo"
+{:timbre {:level :info
+          :spit-filename "/tmp/web.log4j"}
+ :tailer {:fpath "/tmp/master-buffer.log"
           :bufsiz 10000
-          :file-check-delay 2000
+          :file-check-delay 1000
           :chunk-delay 10000}
  :db {:db "x"
       :user "x"
@@ -13,20 +13,20 @@
        :max-retries 5
        :retry-wait 5000
        :ratelimit-delay-ms 500
-       :url "x"}
- :now-playing {:check-delay 10000
+       :url "http://api.ipinfodb.com/v3/ip-city/"}
+ :now-playing {:check-delay 5000
                :host "localhost"
                :song-mount "128"
-               :fake-json-file "/home/www/playing-logs/playing"
-               :fake-jsonp-file "/home/www/playing-logs/playing-jsonp"
+               :fake-json-file "/home/streams/playing"
+               :fake-jsonp-file "/home/streams/playing-jsonp"
                :adminuser "admin"
                :adminpass "x"
                :port 8040}
  :scheduler {:url  "http://airtime.knyo.org/api/week-info"
-             :ical-file "/home/www/knyo.ics"
-             :check-delay 60000
-             :json-schedule-file "/home/www/knyo.json"
-             :up-next-file "/home/www/up-next"}
+             :ical-file "/home/streams/knyo.ics"
+             :check-delay 10000
+             :json-schedule-file "/home/streams/knyo.json"
+             :up-next-file "/home/streams/up-next"}
  :web-server {:mode :dev
               :port 8080
               :cljs {:chat {:history_url "http://localhost:8080/chatlog"
