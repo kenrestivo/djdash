@@ -150,7 +150,9 @@
                json/encode
                fake-jsonp
                (spit fake-jsonp-file))
-          (post-to-hubzilla hubzilla o n)
+          (when hubzilla 
+            ;; XXX hack! should dump it in a channel and hubzilla should listen.
+            (post-to-hubzilla hubzilla o n))
           (catch Exception e
             (log/error e)))))))
 
@@ -259,7 +261,7 @@
   (log/info "nowplaying " settings)
   (component/using
    (map->Nowplaying {:settings settings})
-   [:log :geo :sente :hubzilla]))
+   [:log :geo :sente]))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
