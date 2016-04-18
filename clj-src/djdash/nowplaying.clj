@@ -284,7 +284,10 @@
   
   (log/error (.getCause *e))
   
-  (log/set-level! :trace)
+  (do
+    (log/set-level! :trace)
+    (log/merge-config! {:ns-whitelist ["djdash.nowplaying"]})
+    )
 
   (send (->> @sys/system :nowplaying :nowplaying-internal :nowplaying) assoc :playing "[LIVE!] not really")
 
@@ -313,5 +316,6 @@
                     (->> @sys/system :nowplaying :nowplaying-internal :nowplaying deref))
   
   
+
 
   )
