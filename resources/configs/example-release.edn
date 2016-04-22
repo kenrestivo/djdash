@@ -28,7 +28,7 @@
              :check-delay 10000
              :json-schedule-file "/home/streams/knyo.json"
              :up-next-file "/home/streams/up-next"}
- :web-server {:mode :dev
+ :web-server {:mode :release
               :port 8080
               :cljs {:chat {:history_url "http://localhost:8080/chatlog"
                             :serv "radio.spaz.org"
