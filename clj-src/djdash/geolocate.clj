@@ -42,7 +42,7 @@
          (jdbc/query conn)
          first)
     (catch Exception e
-      (log/error (.getCause e)))))
+      (log/error e (.getCause e)))))
 
 
 
