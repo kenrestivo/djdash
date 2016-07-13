@@ -47,9 +47,9 @@
                                   :chsk-send! nil
                                   :chsk-state nil}
                           :geo {:node-name "listener-map"
-                                :url "http://otile{s}.mqcdn.com/tiles/1.0.0/osm/{z}/{x}/{y}.png"
+                                :url "http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                                 :options {:subdomains "1234",
-                                          :attribution "&copy; <a href='http://www.openstreetmap.org/'>OpenStreetMap</a> <a href='http://www.openstreetmap.org/copyright' title='ODbL'>open license</a>. <a href='http://www.mapquest.com/'>MapQuest</a> <img src='http://developer.mapquest.com/content/osm/mq_logo.png'>"}
+                                          :attribution "&copy; <a href='http://www.openstreetmap.org/'>OpenStreetMap</a> <a href='http://www.openstreetmap.org/copyright' title='ODbL'>open license</a>."}
                                 :connections {}
                                 :text-label "Listeners Map"
                                 :geo-map nil
