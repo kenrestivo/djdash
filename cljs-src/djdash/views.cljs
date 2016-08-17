@@ -304,7 +304,6 @@
 
     ;; right column
     [:div  {:class "col-md-6"} 
-     [geo-map]
      [scheduled-now-view]
      [schedule-view]
      [chat-users]
