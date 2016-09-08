@@ -83,6 +83,7 @@
                                   ;; for migratus. can't use timbre-slf4j because
                                   ;; http://yogthos.net/posts/2015-12-26-AOTGotchas.html
                                   [com.cemerick/piggieback "0.2.1"]
+                                  [weasel "0.7.0" :exclusions [org.clojure/clojurescript]]
                                   [figwheel-sidecar "0.5.0-2"
                                    :exclusions [org.clojure/tools.reader
                                                 org.clojure/core.async
@@ -104,7 +105,7 @@
                                    (djdash.core/-main))
                                  ]}}
 
-  :cljsbuild {:builds {"dev" {:source-paths ["cljs-src"]
+  :cljsbuild {:builds {"dev" {:source-paths ["cljs-src" "repl"]
                               :figwheel true
                               :compiler {:output-to "resources/public/js/djdash.js"
                                          :output-dir "resources/public/js/dev"
@@ -112,7 +113,7 @@
                                          :main djdash.core
                                          :optimizations :none
                                          :source-map  true}}
-                       "release"{:source-paths ["cljs-src"]
+                       "release"{:source-paths ["cljs-src" "mock-fake-cljs"]
                                  :jar true
                                  :compiler {:output-dir "resources/public/js/release"
                                             :output-to "resources/public/js/djdash-min.js"

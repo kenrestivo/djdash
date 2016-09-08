@@ -31,7 +31,10 @@
                            (s/optional-key :presence_chan) s/Str
                            (s/required-key :port) s/Int
                            (s/optional-key :timeout) s/Int
-                           (s/required-key :chan) s/Str}})
+                           (s/required-key :chan) s/Str}
+   (s/optional-key :mode) s/Keyword
+   (s/optional-key :log-level) s/Keyword
+   })
 
 
 

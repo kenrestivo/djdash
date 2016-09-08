@@ -247,6 +247,19 @@
                                (add-watch state/app-state :djdash/update-map update-map!)
                                ))})))
 
+(defn text-map
+  [conns]
+  (try
+    (when (< 0 (count conns))
+      [:div {:id "conns"}
+       [:ul {:class "list-group"}
+        ;; this contrived index will work for the moment. timestamp, maybe, but that might be tricky
+        (for [[idx {:keys [city region]}]  conns]
+          [:li {:class "list-group-item"
+                :key  (str "msg" idx)}
+           [:span {:class "message"} (str city ", " region)]])]])
+    (catch :default e
+      (error e))))
 
 
 ;; TODO: move this to :component-did-update
@@ -304,6 +317,9 @@
 
     ;; right column
     [:div  {:class "col-md-6"} 
+     [:div
+      [:div {:class "text-label"} "Listeners Locations"]
+      [text-map (-> @state/app-state :geo :connections)]]
      [scheduled-now-view]
      [schedule-view]
      [chat-users]
@@ -343,4 +359,7 @@
 
   ;; NO, will need to use layergroup
   (some-> @state/app-state :geo :geo-map .-_layers)
+
+  (some-> @state/app-state :geo)
+
   )

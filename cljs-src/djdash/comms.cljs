@@ -160,9 +160,12 @@
 
 (defn start-chat
   []
-  (when-not (-> @state/app-state :chat :login) ;; guard against double-instantiation in figwheel
+  ;; guard against double-instantiation in figwheel
+  ;;  TODO: XXX but remove in prod. don't want to fail logins? 
+  ;; XXX this is just broken. fix. there's a race condition that causes logins to not show up.
+  (when-not (-> @state/app-state :chat :login)
     (swap! state/app-state update-in [:chat] merge
-           (-> js/settings
+           (-> js/settings ;; these are the settings passed in from the html. hacky, but necessary
                utils/un-json
                :chat 
                (merge {:onMessage #(swap! state/app-state update-in [:chat :messages] 
@@ -181,6 +184,8 @@
                clj->js
                js/spaz_radio_chat.
                utils/un-json))))
+
+
 
 
 

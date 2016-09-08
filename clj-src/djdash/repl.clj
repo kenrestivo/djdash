@@ -6,6 +6,8 @@
   ;; then it'll cause compilation errors if this is here.
   ;; somehow this ns will need to be condidionally compiled only when in dev mode
 
+  (ns djdash.repl)
+
   (require '[cemerick.piggieback])
   (require '[weasel.repl.websocket])
 
