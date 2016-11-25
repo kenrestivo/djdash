@@ -313,10 +313,10 @@
       [flot (:playing @state/app-state) :playing]]
      [:div 
       [:div {:class "text-label"} "DJ Connection Quality"]
-      [flot (:buffer @state/app-state) :buffer]
-      [:div
-       [:div {:class "text-label"} "Listeners Locations"]
-       [text-map (-> @state/app-state :geo :connections)]]]]
+      [flot (:buffer @state/app-state) :buffer]]
+     [:div
+      [:div {:class "text-label"} "Listeners Locations"]
+      [text-map (-> @state/app-state :geo :connections)]]]
 
     ;; right column
     [:div  {:class "col-md-6"} 
