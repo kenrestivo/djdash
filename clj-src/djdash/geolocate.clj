@@ -204,6 +204,7 @@
                         (send-off conn-agent merge (merge-and-keyify-geo m g)))))
                   (catch Exception e
                     (log/error e)))
+                ;; TODO: should use throttler here instead https://github.com/brunoV/throttler
                 (Thread/sleep ratelimit-delay-ms)
                 (recur))
               (catch Exception e
