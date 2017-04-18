@@ -77,6 +77,9 @@
        (zipmap [:future :current])))
 
 
+(defn fake-jsonp
+  [s]
+  (str "update_schedule_meta(\n" s "\n);"))
 
 (defn jsonify-date
   [i]
@@ -128,6 +131,9 @@
 
 
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
 (defn start-checker
   [schedule sente url check-delay]
   (log/info "starting schedule checker thread")
@@ -150,9 +156,7 @@
       (log/error e))))
 
 
-(defn fake-jsonp
-  [s]
-  (str "update_schedule_meta(\n" s "\n);"))
+
 
 (defn schedule-listen-loop
   [{:keys [chsk-send! recv-pub]} {:keys [schedule]}]
@@ -283,6 +287,19 @@
   
   (log/set-level! :info)
   
+  ;; nil???
+  (try
+    (->> sys/system deref :scheduler :scheduler-internal)
+    (catch Throwable e
+      (log/error e)))
 
 
+  ;; only shows this week not next week. but works
+  (->> (fetch-schedule "http://radio.spaz.org/api/week-info/")
+       (urepl/massive-spew "/tmp/foo.edn"))
+
+  
+
+  
+  
   )

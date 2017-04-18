@@ -50,14 +50,14 @@
                              (s/required-key :bufsiz) s/Int
                              (s/required-key :file-check-delay) s/Int
                              (s/required-key :chunk-delay) s/Int}
-   (s/required-key :hubzilla) {(s/required-key :url) s/Str
-                               (s/required-key :channel)  s/Str
-                               (s/required-key :login)  s/Str
-                               (s/required-key :timeout-ms)  s/Int
-                               (s/required-key :max-timeout-ms)  s/Int
-                               (s/required-key :bump-factor)  (s/pred float? "float")
-                               (s/required-key :listen)  s/Str
-                               (s/required-key :pw)  s/Str}
+   (s/required-key :matrix) {(s/required-key :url) s/Str
+                             (s/required-key :login)  s/Str
+                             (s/required-key :channel)  s/Str
+                             (s/required-key :timeout-ms)  s/Int
+                             (s/required-key :max-timeout-ms)  s/Int
+                             (s/required-key :bump-factor)  (s/pred float? "float")
+                             (s/required-key :listen)  s/Str
+                             (s/required-key :pw)  s/Str}
    (s/required-key :now-playing)  {(s/required-key :check-delay)  s/Int
                                    (s/required-key :host)  s/Str
                                    (s/required-key :adminuser)  s/Str

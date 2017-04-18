@@ -2,14 +2,14 @@
           :bufsiz 10000
           :file-check-delay 1000
           :chunk-delay 10000}
- :hubzilla {:url "https://somewhere"
-            :channel "sumchannel"
-            :timeout-ms 60000
-            :max-timeout-ms 600000
-            :bump-factor 1.4
-            :listen "http://spaz.org/radio"
-            :login "someuser"
-            :pw "somepass"}
+ :matrix {:url "https://somewhere"
+          :channel "sumchannel"
+          :timeout-ms 60000
+          :max-timeout-ms 600000
+          :bump-factor 1.4
+          :listen "http://spaz.org/radio"
+          :login "someuser"
+          :pw "somepass"}
  :now-playing {:check-delay 5000
                :host "some.host.com"
                :adminuser "admin"

@@ -10,7 +10,7 @@
             [djdash.db :as db]
             [djdash.mqtt :as mqtt]
             [djdash.chat :as chat]
-            [djdash.hubzilla :as hubzilla]
+            [djdash.matrix :as matrix]
             [djdash.nowplaying :as nowplaying]
             [djdash.schedule :as schedule]
             [djdash.server :as srv]
@@ -22,9 +22,9 @@
 
 
 (defn make-system
-  [{:keys [timbre tailer web-server chat mqtt nrepl db geo scheduler hubzilla now-playing]}]
+  [{:keys [timbre tailer web-server chat mqtt nrepl db geo scheduler matrix now-playing]}]
   ;; TODO: hack! just use schema
-  {:pre  [(every? identity (map map? [timbre chat mqtt db tailer hubzilla scheduler 
+  {:pre  [(every? identity (map map? [timbre chat mqtt db tailer matrix scheduler 
                                       now-playing geo web-server]))]} 
   (component/system-map
    :log (dlog/start-log timbre)
@@ -35,7 +35,7 @@
    :nrepl (n/create-nrepl nrepl)
    :sente (sente/create-sente)
    :geo   (geo/create-geo geo)
-   :hubzilla   (hubzilla/create-hubzilla hubzilla)
+   :matrix   (matrix/create-matrix matrix)
    :nowplaying (nowplaying/create-nowplaying now-playing)
    :scheduler (schedule/create-scheduler scheduler)
    :web-server (srv/start-server web-server)

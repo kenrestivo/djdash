@@ -121,9 +121,9 @@
   (str "update_meta(\n" s "\n);"))
 
 
-(defn post-to-hubzilla
+(defn post-to-matrix
   [h o n]
-  (log/trace "hubzilla checking if now playing changed" o n)
+  (log/trace "matrix checking if now playing changed" o n)
   (try 
     (when (and (apply not= (map :playing [o n]))
                (not= "Checking..." (:playing o))
@@ -135,7 +135,7 @@
 
 
 (defn watch-nowplaying-fn
-  [sente fake-json-file fake-jsonp-file hubzilla]
+  [sente fake-json-file fake-jsonp-file matrix]
   (fn [k r o n]
     (log/trace k "nowplaying atom watch updated")
     (when (apply not= (map #(select-keys % keys-triggering-broadcast) [o n]))
@@ -150,7 +150,7 @@
                json/encode
                fake-jsonp
                (spit fake-jsonp-file))
-          (post-to-hubzilla hubzilla o n)
+          (post-to-matrix matrix o n)
           (catch Exception e
             (log/error e)))))))
 
@@ -202,12 +202,12 @@
 
 
 (defn start-nowplaying
-  [{:keys [check-delay host port fake-json-file fake-jsonp-file] :as settings} sente request-ch hubzilla]
+  [{:keys [check-delay host port fake-json-file fake-jsonp-file] :as settings} sente request-ch matrix]
   (let [nowplaying-agent (agent  {:playing "Checking..."
                                   :listeners 0}
                                  :error-handler #(log/error %))]
     (add-watch nowplaying-agent :djdash/update
-               (watch-nowplaying-fn sente fake-json-file fake-jsonp-file hubzilla))
+               (watch-nowplaying-fn sente fake-json-file fake-jsonp-file matrix))
     (log/debug "start-nowplaying called")
     {:check-thread (start-checker nowplaying-agent sente request-ch settings)
      :nowplaying nowplaying-agent}))
@@ -226,7 +226,7 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defrecord Nowplaying [settings hubzilla nowplaying-internal]
+(defrecord Nowplaying [settings matrix nowplaying-internal]
   component/Lifecycle
   (start
     [this]
@@ -236,7 +236,7 @@
       (let [nowplaying-internal (start-nowplaying (:settings this)
                                                   (-> this :sente :sente)
                                                   (-> this :geo :request-ch)
-                                                  (-> this :hubzilla :request-ch))
+                                                  (-> this :matrix :request-ch))
             listen-loop (nowplaying-listen-loop (-> this :sente :sente) nowplaying-internal)]
         (log/debug "start-nowplaying and nowplaying-listen-loop returned")
         (assoc this :nowplaying-internal (merge nowplaying-internal
@@ -259,7 +259,7 @@
   (log/info "nowplaying " settings)
   (component/using
    (map->Nowplaying {:settings settings})
-   [:log :geo :sente :hubzilla]))
+   [:log :geo :sente :matrix]))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -300,14 +300,14 @@
   
   (apply dissoc {:foo 1 :bar 2 :baz 3} [:foo :baz])
 
-  (-> @sys/system :nowplaying :hubzilla)
+  (-> @sys/system :nowplaying :matrix)
   
   (log/set-level! :info)
 
   (log/set-level! :trace)
 
   ;;; to force it, for debugging porpoises
-  (post-to-hubzilla (-> @sys/system :nowplaying :hubzilla :request-ch) {:playing "Unknown"}
+  (post-to-matrix (-> @sys/system :nowplaying :matrix :request-ch) {:playing "Unknown"}
                     (->> @sys/system :nowplaying :nowplaying-internal :nowplaying deref))
   
   
