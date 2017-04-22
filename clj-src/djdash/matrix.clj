@@ -4,6 +4,7 @@
             [clojure.core.async :as async]
             [utilza.repl :as urepl]
             [djdash.utils :as utils]
+            [utilza.log :as ulog]
             [com.stuartsierra.component :as component]
             [taoensso.timbre :as log]))
 
@@ -34,17 +35,15 @@
   [{:keys [settings token tx-id]} playing]
   (when (-> playing empty? not)
     (log/trace "sending to matrix" playing)
-    (try
-      (let [{:keys [url channel listen]} settings
-            {:keys [body headers]} (-> {:room-id channel
-                                        :url url
-                                        :token token
-                                        :tx-id tx-id
-                                        :message (format "%s \nListen here: %s" playing listen)}
-                                       send-message!)]
-        (log/trace "sent to matrix" body  " --> " headers))
-      (catch Throwable e
-        (log/error e)))))
+    (ulog/catcher
+     (let [{:keys [url channel listen]} settings
+           {:keys [body headers]} (-> {:room-id channel
+                                       :url url
+                                       :token token
+                                       :tx-id tx-id
+                                       :message (format "%s \nListen here: %s" playing listen)}
+                                      send-message!)]
+       (log/trace "sent to matrix" body  " --> " headers)))))
 
 
 
@@ -54,37 +53,35 @@
   (let [{:keys [timeout-ms max-timeout-ms bump-factor]} settings
         request-ch (async/chan (async/sliding-buffer 1))
         bump (fn [timeout] (min (* bump-factor timeout) max-timeout-ms))]
-    (future (try
-              (log/info "starting request loop")
-              (loop [thrash? true ;; always assume first report is garbage (liquidsoap glitch)
-                     timeout timeout-ms
-                     prev-playing nil]
-                (let [[playing ch] (async/alts!! [request-ch (async/timeout timeout)])
-                      req? (= ch request-ch)]
-                  (cond (= playing :quit)  nil;; end here
-                        (and req? (not thrash?)) (do ;; first request always assumes thrash, this'll be 2nd
-                                                   (post-to-matrix! this playing)
-                                                   ;; trust no further requests after this, until timeout
-                                                   ;; and bump the timeout
-                                                   (recur true 
-                                                          (bump timeout)
-                                                          ;; don't need to keep prev-playing
-                                                          nil))
-                        ;; thrash! this might be someone thrashing! store it, don't send it to matrix yet.
-                        (and req? thrash?) (do (log/trace "thrash. bumping timeout " timeout)
-                                               (recur true 
-                                                      (bump timeout)  
-                                                      playing))
-                        ;; it's a timeout. 
-                        (not req?) (do (when prev-playing 
-                                         ;; if something was stored, it's safe to send.
-                                         (post-to-matrix! this prev-playing))
-                                       (log/trace "we've waited, no changes, resetting timeout"
-                                                  prev-playing timeout)
-                                       ;; resetting everything back to defaults for next round
-                                       (recur true timeout-ms nil)))))
-              (catch Exception e
-                (log/error e)))
+    (future (ulog/catcher
+             (log/info "starting request loop")
+             (loop [thrash? true ;; always assume first report is garbage (liquidsoap glitch)
+                    timeout timeout-ms
+                    prev-playing nil]
+               (let [[playing ch] (async/alts!! [request-ch (async/timeout timeout)])
+                     req? (= ch request-ch)]
+                 (cond (= playing :quit)  nil;; end here
+                       (and req? (not thrash?)) (do ;; first request always assumes thrash, this'll be 2nd
+                                                  (post-to-matrix! this playing)
+                                                  ;; trust no further requests after this, until timeout
+                                                  ;; and bump the timeout
+                                                  (recur true 
+                                                         (bump timeout)
+                                                         ;; don't need to keep prev-playing
+                                                         nil))
+                       ;; thrash! this might be someone thrashing! store it, don't send it to matrix yet.
+                       (and req? thrash?) (do (log/trace "thrash. bumping timeout " timeout)
+                                              (recur true 
+                                                     (bump timeout)  
+                                                     playing))
+                       ;; it's a timeout. 
+                       (not req?) (do (when prev-playing 
+                                        ;; if something was stored, it's safe to send.
+                                        (post-to-matrix! this prev-playing))
+                                      (log/trace "we've waited, no changes, resetting timeout"
+                                                 prev-playing timeout)
+                                      ;; resetting everything back to defaults for next round
+                                      (recur true timeout-ms nil))))))
             (log/info "exiting request loop"))
     (-> this
         (assoc  :request-ch request-ch))))
@@ -115,18 +112,16 @@
   [{:keys [settings token tx-id] :as this}]
   (let [{:keys [url]} settings]
     (log/info "logging out of" url @tx-id)
-    (try
-      (-> (str url "/_matrix/client/r0/logout")
-          (client/post {:as :json
-                        :form-params {}
-                        :query-params {:access_token @token}
-                        :content-type :json
-                        :insecure? true ;; only because jave don't like letsencrypt, it seems
-                        :retry-handler utils/retry
-                        :throw-exceptions true})
-          :body)
-      (catch Exception e
-        (log/error e)))
+    (ulog/catcher
+     (-> (str url "/_matrix/client/r0/logout")
+         (client/post {:as :json
+                       :form-params {}
+                       :query-params {:access_token @token}
+                       :content-type :json
+                       :insecure? true ;; only because jave don't like letsencrypt, it seems
+                       :retry-handler utils/retry
+                       :throw-exceptions true})
+         :body))
     (-> this
         (assoc :token nil)
         (assoc :tx-id nil))))
@@ -232,33 +227,24 @@
 
   (async/>!!  (->> @sys/system :matrix :request-ch) "cheese. life.")
 
-  (try
-    (->> @sys/system :matrix
-         (urepl/massive-spew "/tmp/foo.edn"))
-    (catch Throwable e
-      (log/error e)))
-
-
-
   
+  (->> @sys/system :matrix ulog/spewer)
 
-  (urepl/massive-spew   "/tmp/foo.edn")
+
+
   
   (->> @sys/system :matrix logout!)
   
 
-  (try
-    (->>   (post-to-matrix!  (->> @sys/system :matrix)
-                             (some->> @sys/system
-                                      :nowplaying
-                                      :nowplaying-internal
-                                      :nowplaying
-                                      deref
-                                      :playing))
-           (urepl/massive-spew "/tmp/foo.edn"))
-    (catch Throwable e
-      (log/error e)))
+  (->>  (post-to-matrix!  (->> @sys/system :matrix)
+                          (some->> @sys/system
+                                   :nowplaying
+                                   :nowplaying-internal
+                                   :nowplaying
+                                   deref
+                                   :playing))
 
+        ulog/spewer)
 
 
 
