@@ -41,7 +41,7 @@
                                        :url url
                                        :token token
                                        :tx-id tx-id
-                                       :message (format "%s \nListen here: %s" playing listen)}
+                                       :message  playing}
                                       send-message!)]
        (log/trace "sent to matrix" body  " --> " headers)))))
 
