@@ -35,7 +35,7 @@
                  [honeysql "0.6.2"]
                  [environ "1.0.1"]
                  [com.taoensso.forks/http-kit "2.1.20"]
-                 [utilza "0.1.77"]
+                 [utilza "0.1.91"]
                  [org.clojure/tools.nrepl "0.2.11"]
                  [clj-ical "1.1" :exclusions [clj-time]]
                  [org.clojure/data.xml "0.0.8"]
@@ -72,6 +72,7 @@
   :profiles {:dev {:repl-options {:nrepl-middleware [cemerick.piggieback/wrap-cljs-repl]}
                    :source-paths ["clj-src" "cljs-src" "dev"]
                    :plugins [[lein-cljsbuild "1.1.1"]
+                             [lein-ancient "0.6.10"]
                              [lein-figwheel "0.5.0-2"
                               :exclusions [org.clojure/tools.reader
                                            org.clojure/clojure

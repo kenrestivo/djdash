@@ -78,7 +78,7 @@
                         ;; it's a timeout. 
                         (not req?) (do (when prev-playing 
                                          ;; if something was stored, it's safe to send.
-                                         (post-to-matrix! settings prev-playing))
+                                         (post-to-matrix! this prev-playing))
                                        (log/trace "we've waited, no changes, resetting timeout"
                                                   prev-playing timeout)
                                        ;; resetting everything back to defaults for next round
@@ -230,6 +230,7 @@
   ;;; for testing
   (async/>!!  (->> @sys/system :matrix :request-ch) (str (java.util.Date.)))
 
+  (async/>!!  (->> @sys/system :matrix :request-ch) "cheese. life.")
 
   (try
     (->> @sys/system :matrix

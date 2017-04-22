@@ -128,8 +128,10 @@
     (when (and (apply not= (map :playing [o n]))
                (not= "Checking..." (:playing o))
                (-> o :playing empty? not))
-      (log/trace "looks like it did change" o n)
-      (when h (async/>!! h (:playing n))))
+      (log/trace "looks like it did change, sending to matrix via async" o n)
+      (when h 
+        (log/trace "there is an h, so here it goes")
+        (async/>!! h (:playing n))))
     (catch Exception e
       (log/error e))))
 
@@ -308,7 +310,7 @@
 
   ;;; to force it, for debugging porpoises
   (post-to-matrix (-> @sys/system :nowplaying :matrix :request-ch) {:playing "Unknown"}
-                    (->> @sys/system :nowplaying :nowplaying-internal :nowplaying deref))
+                  (->> @sys/system :nowplaying :nowplaying-internal :nowplaying deref))
   
   
 
