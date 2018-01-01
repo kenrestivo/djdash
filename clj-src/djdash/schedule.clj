@@ -1,6 +1,7 @@
 (ns djdash.schedule
   (:require [cheshire.core :as json]
             [cheshire.generate :as jgen]
+            [utilza.log :as ulog]
             [clj-time.coerce :as coerce]
             [djdash.schedule.public :as pub]
             [djdash.schedule.ical :as ical]
@@ -125,9 +126,9 @@
 
 (defn update-schedule
   ([schedule ^java.lang.String url ^java.util.Date date]
-     (send-off schedule (update-schedule-fn url date)))
+   (send-off schedule (update-schedule-fn url date)))
   ([schedule ^java.lang.String url]
-     (update-schedule schedule url (java.util.Date.))))
+   (update-schedule schedule url (java.util.Date.))))
 
 
 
@@ -182,37 +183,35 @@
 
 
 (defn watch-schedule-fn
-  [sente ical-file next-up-file json-schedule-file]
+  [sente ical-file next-up-file json-current-file json-schedule-file]
   (fn [k r o n]
     (let [old-future (-> o :future)
           new-future (-> n :future)]
       (log/trace k "schedule atom watch updated")
       (when (not= old-future new-future)
-        (do
-          (log/debug k "schedule changed " o " -> " n)
-          (future
-            (try
-              (log/info "dumping schedule to" ical-file)
-              (->> n
-                   ical/->ical
-                   (spit ical-file))
-              (catch Exception e
-                (log/error e))))
-          (try 
-            (->> new-future
-                 json/encode
-                 (spit json-schedule-file))
-            (catch Exception e
-              (log/error e)))
-          (try 
-            (->> new-future
-                 first
-                 json/encode
-                 fake-jsonp
-                 (spit next-up-file))
-            (catch Exception e
-              (log/error e)))
-          (utils/broadcast sente :djdash/next-shows n))))))
+        (log/debug k "schedule changed " o " -> " n)
+        (future
+          (ulog/catcher
+           (->> new-future
+                json/encode
+                (spit json-schedule-file)))
+          (ulog/catcher
+           (->> new-future
+                first
+                json/encode
+                fake-jsonp
+                (spit next-up-file)))
+          (ulog/catcher
+           (->> n
+                :current
+                json/encode
+                (spit json-current-file)))
+          (ulog/catcher
+           (log/info "dumping schedule to" ical-file)
+           (->> n
+                ical/->ical
+                (spit ical-file))))
+        (utils/broadcast sente :djdash/next-shows n)))))
 
 
 

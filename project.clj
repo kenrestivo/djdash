@@ -1,4 +1,4 @@
-(defproject djdash "0.1.18"
+(defproject djdash "0.1.19"
   :description "Dashboard for SPAZ Radio"
   :url "http://spaz.org/radio"
 
@@ -35,7 +35,7 @@
                  [honeysql "0.6.2"]
                  [environ "1.0.1"]
                  [com.taoensso.forks/http-kit "2.1.20"]
-                 [utilza "0.1.91"]
+                 [utilza "0.1.95"]
                  [org.clojure/tools.nrepl "0.2.11"]
                  [clj-ical "1.1" :exclusions [clj-time]]
                  [org.clojure/data.xml "0.0.8"]

@@ -15,7 +15,7 @@
 
   (let [d (java.util.Date.)
         {:keys [url]} (->> @sys/system :scheduler :settings)
-        {:keys [current future] :as old}  (->> "resources/test-data/broken-schedule.edn" 
+        {:keys [current future] :as old}  (->> "test-data/broken-schedule.edn" 
                                                slurp 
                                                edn/read-string)]
     (let [{:keys [current future] :as new-sched} (->> (concat current future) ;; rejoining for resplitting

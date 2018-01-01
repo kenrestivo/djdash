@@ -40,6 +40,7 @@
  :scheduler {:url "http://radio.spaz.org/api/week-info"
              :ical-file "/home/streams/spazradio.ics"
              :json-schedule-file "/home/streams/spazradio.json"
+             :json-current-file "/home/streams/scheduled.json"
              :up-next-file "/home/streams/up-next"
              :check-delay 10000}
  :web-server {:port 8080

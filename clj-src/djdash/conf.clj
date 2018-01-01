@@ -77,6 +77,7 @@
    (s/optional-key :nrepl) {(s/required-key :port) s/Int}
    (s/required-key :scheduler)  {(s/required-key :url)  s/Str
                                  (s/required-key :ical-file)  s/Str
+                                 (s/required-key :json-current-file)  s/Str
                                  (s/required-key :json-schedule-file)  s/Str
                                  (s/required-key :up-next-file)  s/Str
                                  (s/required-key :check-delay)  s/Int}
