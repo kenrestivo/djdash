@@ -183,7 +183,7 @@
 
 
 (defn watch-schedule-fn
-  [sente {:keys [ical-file next-up-file  json-schedule-file]}]
+  [sente {:keys [ical-file up-next-file json-schedule-file]}]
   (fn [k r o n]
     (let [old-future (-> o :future)
           new-future (-> n :future)]
@@ -197,12 +197,12 @@
                 json/encode
                 (spit json-schedule-file)))
           (ulog/catcher
-           (log/info "dumping next up to" next-up-file)
+           (log/info "dumping next up to" up-next-file)
            (->> new-future
                 first
                 json/encode
                 fake-jsonp
-                (spit next-up-file)))
+                (spit up-next-file)))
           (ulog/catcher
            (log/info "dumping schedule to" ical-file)
            (->> n
