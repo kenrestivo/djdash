@@ -201,8 +201,8 @@
            (log/info "dumping next up to" up-next-file)
            (->> new-future
                 first
-                json/encode
                 (conj current)
+                json/encode
                 fake-jsonp
                 (spit up-next-file)))
           (ulog/catcher
