@@ -186,7 +186,7 @@
   [sente {:keys [ical-file up-next-file json-schedule-file]}]
   (fn [k r o n]
     (let [old-future (-> o :future)
-          current (:current n)
+          current (some-> n :current first)
           new-future (-> n :future)]
       (log/trace k "schedule atom watch updated")
       (when (not= old-future new-future)
@@ -201,7 +201,7 @@
            (log/info "dumping next up to" up-next-file)
            (->> new-future
                 first
-                (conj current)
+                (assoc {:current current} :next-up)
                 json/encode
                 fake-jsonp
                 (spit up-next-file)))
