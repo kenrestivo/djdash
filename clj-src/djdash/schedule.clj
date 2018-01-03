@@ -201,7 +201,7 @@
            (log/info "dumping next up to" up-next-file)
            (->> new-future
                 first
-                (assoc {:current current} :next-up)
+                (assoc {:current current} :next)
                 json/encode
                 fake-jsonp
                 (spit up-next-file)))
