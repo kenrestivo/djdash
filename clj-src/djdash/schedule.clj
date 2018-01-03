@@ -201,6 +201,7 @@
            (->> new-future
                 first
                 json/encode
+                (conj [(:current n)])
                 fake-jsonp
                 (spit up-next-file)))
           (ulog/catcher
