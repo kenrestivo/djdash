@@ -1,2 +1,15 @@
 TODO for dj dash
 
+
+* js refactor
+** TODO split out the login from the chat: separate libs
+** TODO enable multiple services to register
+* trippy video console
+** DONE general design
+*** use mqtt with persistence delivery for the parameters
+*** visual page reads and subscribes
+*** dj dash has the console for controlling
+** TODO decide what parameters to use
+   this required spelunking through mike's code
+** TODO accept parameters for video from mqtt in the visuals
+** TODO add sliders and such in djdash for controlling them
