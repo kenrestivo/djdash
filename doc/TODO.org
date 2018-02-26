@@ -9,6 +9,7 @@ TODO for dj dash
 *** use mqtt with persistence delivery for the parameters
 *** visual page reads and subscribes
 *** dj dash has the console for controlling
+*** other consoles are possible, or even in the visual page itself, if desired
 ** TODO decide what parameters to use
 ***  this required spelunking through mike's code
 ** TODO accept parameters for video from mqtt in the visuals
