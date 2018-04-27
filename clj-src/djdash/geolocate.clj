@@ -5,6 +5,7 @@
             [honeysql.helpers :as h]
             [djdash.stats :as stats]
             [honeysql.core :as sql]
+            [utilza.log :as ulog]
             [clojure.java.jdbc :as jdbc]
             [honeysql.core :as sql]
             [djdash.utils :as utils]
@@ -317,7 +318,7 @@
   ;; TODO: verify all the settings are there and correct
   (component/using
    (map->Geo {:settings settings})
-   [:log :db :web-server :sente]))
+   [:log :db :sente]))
 
 
 
@@ -334,6 +335,9 @@
     )
 
 
+  (ulog/catcher
+   (swap! sys/system component/stop-system [:geo]))
+  
   (log/set-level! :trace)
 
   (do
@@ -359,8 +363,11 @@
   
   (async/>!! (->> @sys/system :db :cmd-ch) {:cmd :save})
 
-  (log/merge-config! {:ns-whitelist ["djdash.geolocate"]})
 
+  ;; STFU
+  (log/merge-config! {:ns-blacklist ["djdash.matrix" "djdash.geolocate"]})
+
+  
   ;; TODO: stick a watch function on conn-agent, see who or what is nuking what?
 
   

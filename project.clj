@@ -1,4 +1,4 @@
-(defproject djdash "0.1.19"
+(defproject djdash "0.1.20"
   :description "Dashboard for SPAZ Radio"
   :url "http://spaz.org/radio"
 
@@ -16,7 +16,6 @@
                  [ring.middleware.jsonp "0.1.6" 
                   :exclusions [ring/ring-core]]
                  [robert/bruce "0.8.0"]
-                 [enlive "1.1.6"]
                  [reagent "0.5.1"
                   :exclusions [org.clojure/tools.reader]]
                  [reagent-forms "0.5.13"]
@@ -70,9 +69,11 @@
                                     [:cljsbuild :builds "release" :compiler :output-to]
                                     :target]
   :profiles {:dev {:repl-options {:nrepl-middleware [cemerick.piggieback/wrap-cljs-repl]}
+                   :jvm-opts ["-XX:-OmitStackTraceInFastThrow"]
                    :source-paths ["clj-src" "cljs-src" "dev"]
                    :plugins [[lein-cljsbuild "1.1.1"]
                              [lein-ancient "0.6.10"]
+                             [lein-difftest "2.0.0"]
                              [lein-figwheel "0.5.0-2"
                               :exclusions [org.clojure/tools.reader
                                            org.clojure/clojure

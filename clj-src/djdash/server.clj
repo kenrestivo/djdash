@@ -10,7 +10,7 @@
 
 
 
-(defrecord Server [settings srv sente dbc schedule-agent]
+(defrecord Server [settings srv sente dbc schedule-agent nowplaying]
   component/Lifecycle
   (start
     [this]
@@ -20,6 +20,7 @@
         (log/info "starting webserver " (:settings this))
         ;; TODO: there are many more params to httpsrv/run-server fyi. expose some?
         (let [sente (-> this :sente :sente)
+              nowplaying  (-> this :nowplaying :nowplaying-internal :nowplaying)
               schedule-agent (-> this :scheduler :scheduler-internal :schedule)
               dbc (-> this :db :conn)]
           (log/info "server not running yet, starting it...")
@@ -28,6 +29,7 @@
                      (utils/wrap :settings settings)
                      (utils/wrap :dbc dbc)
                      (utils/wrap :sente sente)
+                     (utils/wrap :nowplaying nowplaying)
                      (utils/wrap :schedule-agent schedule-agent)
                      (kit/run-server  {:port (-> this :settings :port)}))))
         (catch Exception e
@@ -56,7 +58,7 @@
   (try
     (component/using
      (map->Server {:settings settings})
-     [:log :db :sente :scheduler]) 
+     [:log :db :sente :scheduler :nowplaying]) 
     (catch Exception e
       (println e))))
 

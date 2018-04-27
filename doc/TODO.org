@@ -1,2 +1,43 @@
 TODO for dj dash
 
+* pass url from liq to now playing
+** DONE  rrsearch liq telnet cmds
+** DONE  decide: either get liquidsoap to pass it thru to icecast, or blow off using icecast for now playing
+** DONE more test data
+** DONE throw some test posts at it, see how it handles
+*** NOWHERE fix bug: title only somewhere in the munging before broadcast
+	huh, it fixed itself? spooky...
+** DONE http.post inside log2_metadata (why not)
+** DONE  remove now playing polling from djdash
+** DONE write http listener to grab the json
+** DONE how to push to now playing agent? action-at-a-distance, or async chan?
+** test djdash with fake dummy data gleaned from ls logs on prod server
+** DONE what does the parsed data need to look like?
+*** DONE live/not live
+	pass thru
+*** DONE title
+	pass thru, or if empty, mangle from filename
+	and LIVE shows have no title, just an artist
+*** DONE artist
+	pass thru, but if live, add - description if not nil (ugly), otherwise mangle from filename.
+	old archives HAVE NO ARTIST but a title
+*** DONE url
+	pass thru
+** improve test cases
+** DONE add the munging/parsing to the url handling
+** DONE pass it thru the async chan to nowpplaying agent
+** DONE add to json/jsonp that dbene uses
+** DONE matrix posting will be broken, needs to be fixed too.
+*** DONE know what? don't break the API. munge playing properly, the old fashioned way.
+** NOWHERE mod the cljs in now playing in djdash 
+** TODO mod the js in now playing in spaz radio
+** fucking liquidsoap
+*** DONE is being a pain in the ass
+   #+BEGIN_SRC text
+   At /usr/local/lib/python2.7/dist-packages/airtime_playout-1.0-py2.7.egg/liquidsoap/library/utils.liq, line 769, char 38-42:
+   this value has type
+     (...)->(_*_)
+   but it should be a subtype of
+     (...)->unit
+ #+END_SRC
+** TODO when djdash starts, since it doesn't poll, it has NFI what's now playing, have to force it somehow

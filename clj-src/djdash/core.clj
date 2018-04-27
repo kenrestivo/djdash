@@ -3,6 +3,7 @@
             [com.stuartsierra.component :as component]
             [djdash.geolocate :as geo]
             [djdash.log :as dlog]
+            [utilza.log :as ulog]
             [djdash.nrepl :as n]
             [djdash.sente :as sente]
             [schema.core :as s]
@@ -86,17 +87,18 @@
 
 
 (comment
-  (init env/env)
   (start)
   (stop)
   (reset)
 
-  (do 
-    (stop)
-    (future (-main "config.edn"))
-    )
+  (ulog/catcher 
+   (stop)
+   (future (-main "config.edn"))
+   )
 
-  (future (go env/env))
+
+  (def foo *1)
+  (future-done? foo)
   
   (into {} @system)
   
@@ -110,12 +112,15 @@
   
   (stop)
   
-  (keys env/env)
-  (:timbre env/env)
-  (go env/env)
 
-  (conf/read-and-validate "config.edn")
 
+
+  
+
+
+
+
+  
   )
 
 

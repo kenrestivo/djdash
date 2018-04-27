@@ -92,3 +92,17 @@
   [handler k thing]
   (fn [req]
     (handler (assoc req k thing))))
+
+
+;; TODO: move to utilza
+(defn val-freqs
+  "Debug function to show the frequencies of all values for all keys"
+  [ms]
+  (into {}
+        (for [k  (->> ms
+                      (map keys)
+                      (apply concat)
+                      set)]
+          [k (->> ms
+                  (map k)
+                  frequencies)])))

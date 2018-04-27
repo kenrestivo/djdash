@@ -189,7 +189,7 @@
   ;; TODO: verify all the settings are there and correct
   (component/using
    (map->Matrix {:settings settings})
-   [:log :web-server]))
+   [:log]))
 
 
 

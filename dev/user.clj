@@ -1,5 +1,7 @@
 (ns user
-  (:use [figwheel-sidecar.repl-api :as ra]))
+  (:require [figwheel-sidecar.repl-api :as ra]
+            [utilza.log :as ulog]
+            [clj-http.client :as client]))
 
 (defn start [] (ra/start-figwheel!))
 
@@ -16,4 +18,12 @@
 
   (stop)
 
-)
+  (ulog/spewer
+   (client/post "http://localhost:8080/now-playing"
+                {:form-params {:foo "bar"}
+                 :content-type :json
+                 :as :json}))
+
+  
+
+  )

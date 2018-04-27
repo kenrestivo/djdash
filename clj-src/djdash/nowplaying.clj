@@ -5,87 +5,19 @@
             [com.stuartsierra.component :as component]
             [djdash.stats :as stats]
             [djdash.utils :as utils]
-            [net.cgrand.enlive-html :as enlive]
             [taoensso.timbre :as log]
             [utilza.file :as ufile])
   (:import (java.io BufferedReader InputStreamReader PrintWriter)
            (java.net Socket)))
 
 
-(def keys-triggering-broadcast [:playing :listeners])
+(def keys-triggering-broadcast [:playing :listeners :artist :title :url :live])
 (def archives-host "localhost")
 (def archives-port 1234)
 
 
 ;;;;;;;
 
-
-
-(defn munge-archives*
-  [s]
-  (-> s
-      (str/replace #"unknown-" "")
-      (str/replace #".ogg" "")
-      (str/replace #".mp3" "")
-      (str/replace #"-\d+kbps" "")))
-
-
-;; the archive thing, transliterated from python
-(defn munge-archives
-  [s]
-  (->> s
-       str/split-lines
-       (filter #(.contains % "[playing]"))
-       first
-       (#(str/split % #" "))
-       rest
-       first
-       (ufile/path-sep "/")
-       last
-       munge-archives*))
-
-(defn check-archives
-  [archives-host archives-port]
-  (let [socket (Socket. archives-host archives-port)
-        in (BufferedReader. (InputStreamReader. (.getInputStream socket)))
-        out (PrintWriter. (.getOutputStream socket))]
-    (doto out
-      (.println "archives.next\nquit\n")
-      .flush)
-    (slurp in)))
-
-
-(defn get-archives
-  [archives-host archives-port]
-  (try
-    (munge-archives (check-archives archives-host archives-port))
-    (catch Exception e
-      (log/error e archives-host archives-port))))
-
-
-;; TODO: deal with the entire returned result being "Unknown", it can happen, it should null out
-(defn remove-unknown
-  [s]
-  (some->  s
-           (str/replace #" - Unknown" "")
-           (str/replace #" - \(null\)" "")
-           (str/replace #" - <NULL>" "")))
-
-
-(defn get-icecast-playing
-  ([url]
-     (->> url
-          java.net.URL.
-          enlive/html-resource
-          (#(enlive/select % [:td]))
-          (map (comp first :content))
-          (partition 2 1)
-          (filter #(= "Current Song:" (first %)))
-          first
-          second
-          remove-unknown))
-  ([host ^Integer port mount]
-     (get-icecast-playing (format "http://%s:%d/status.xsl?mount=/%s" host port mount))))
 
 
 
@@ -139,7 +71,7 @@
 (defn watch-nowplaying-fn
   [sente fake-json-file fake-jsonp-file matrix]
   (fn [k r o n]
-    (log/trace k "nowplaying atom watch updated")
+    (log/trace k "nowplaying atom watch called")
     (when (apply not= (map #(select-keys % keys-triggering-broadcast) [o n]))
       (do
         (log/debug k "nowplaying changed, broadcasting " o " -> " n)
@@ -159,23 +91,11 @@
 
 
 
-(defn update-playing-fn
-  [{:keys [host port adminuser adminpass song-mount] :as settings}]
-  (fn [olde]
-    (log/trace "checking playing" host port adminuser adminpass song-mount)
-    (try
-      (assoc olde :playing (or (get-icecast-playing host port song-mount)
-                               (get-archives archives-host archives-port)
-                               "IT'S A MYSTERY! Listen and guess."))
-      (catch Exception e
-        (log/error e)
-        olde))))
-
 
 
 (defn update-listeners
   "Takes settings and a geocode request channel. Fetches the latest now playing info from the server,
- updates the nowplaying agent, and pushes the update out to the geocode component."
+  updates the nowplaying agent, and pushes the update out to the geocode component."
   [olde {:keys [host port adminuser adminpass song-mount] :as settings} request-ch]
   (log/trace "checking listeners" host port adminuser adminpass song-mount)
   (try
@@ -189,13 +109,12 @@
       (log/error e)
       olde)))
 
-
+;; TODO: ugh, shouldn't this be moments? really, a future? i guess it's ok, but...
 (defn start-checker
   [nowplaying-agent sente request-ch {:keys [check-delay] :as settings}]
   (future (while true
             (try
               (doto nowplaying-agent
-                (send-off (update-playing-fn settings))
                 (send-off update-listeners settings request-ch))
               (catch Exception e
                 (log/error e)))
@@ -280,7 +199,7 @@
   
   (log/set-level! :info)
 
-  (->> @sys/system :nowplaying :nowplaying-internal :nowplaying deref :playing)
+  (->> @sys/system :nowplaying :nowplaying-internal :nowplaying deref )
   
   (log/error (.getCause *e))
   
