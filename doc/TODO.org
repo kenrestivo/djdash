@@ -41,3 +41,4 @@ TODO for dj dash
      (...)->unit
  #+END_SRC
 ** TODO when djdash starts, since it doesn't poll, it has NFI what's now playing, have to force it somehow
+** DONE live and url need to be cleared out at mod time

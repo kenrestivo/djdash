@@ -1,126 +1,214 @@
 ({:artist "Little Dragon",
   :title "No Love.-ovpmxYLcH-k",
+  :url nil,
+  :live nil,
   :playing "No Love.-ovpmxYLcH-k - Little Dragon"}
  {:artist "Sound Dimensions Radio",
   :title "2018-02-07",
+  :url nil,
+  :live nil,
   :playing "2018-02-07 - Sound Dimensions Radio"}
  {:artist
   "MIX'D MUTATIONS and other fine audio  EMBELLISHMENTS with your sound selector  D-Syn.",
   :title "2018-02-06",
+  :url nil,
+  :live nil,
   :playing
   "2018-02-06 - MIX'D MUTATIONS and other fine audio  EMBELLISHMENTS with your sound selector  D-Syn."}
  {:artist "Spukkin Faceship's Fukkin Spaceship",
   :title "2018-03-22",
+  :url nil,
+  :live nil,
   :playing "2018-03-22 - Spukkin Faceship's Fukkin Spaceship"}
- {:title "experimental sound collages by esoundc - ",
+ {:artist nil,
+  :title "experimental sound collages by esoundc - ",
   :url "(null)",
   :live "true",
   :playing "[LIVE!] experimental sound collages by esoundc - "}
- {:title "experimental sound collages by esoundc - ",
+ {:artist nil,
+  :title "experimental sound collages by esoundc - ",
   :url "(null)",
   :live "true",
   :playing "[LIVE!] experimental sound collages by esoundc - "}
- {:title "experimental sound collages by esoundc - ",
+ {:artist nil,
+  :title "experimental sound collages by esoundc - ",
   :url "(null)",
   :live "true",
   :playing "[LIVE!] experimental sound collages by esoundc - "}
  {:artist "Spukkin FAceship's Fukkin Spaceship",
   :title "2018-02-01",
+  :url nil,
+  :live nil,
   :playing "2018-02-01 - Spukkin FAceship's Fukkin Spaceship"}
  {:artist "experimental sound collages by esoundc",
   :title "2014-12-13",
+  :url nil,
+  :live nil,
   :playing "2014-12-13 - experimental sound collages by esoundc"}
  {:artist "spazradio",
   :title "foreign guy station id",
+  :url nil,
+  :live nil,
   :playing "foreign guy station id - spazradio"}
- {:artist "", :title "KNCEgoddamit", :playing "KNCEgoddamit"}
- {:artist "p-raw", :title "2015-04-06", :playing "2015-04-06 - p-raw"}
+ {:artist "",
+  :title "KNCEgoddamit",
+  :url nil,
+  :live nil,
+  :playing "KNCEgoddamit"}
+ {:artist "p-raw",
+  :title "2015-04-06",
+  :url nil,
+  :live nil,
+  :playing "2015-04-06 - p-raw"}
  {:artist "Insane Clown Posse",
   :title "Confederate Flag-Pa39v3WAAbY",
+  :url nil,
+  :live nil,
   :playing "Confederate Flag-Pa39v3WAAbY - Insane Clown Posse"}
  {:artist "STYLUS FLIGHT",
   :title "2015-03-24",
+  :url nil,
+  :live nil,
   :playing "2015-03-24 - STYLUS FLIGHT"}
  {:artist "experimental sound collages by esoundc",
   :title "2018-04-07",
+  :url nil,
+  :live nil,
   :playing "2018-04-07 - experimental sound collages by esoundc"}
  {:artist "Viva La Quince Brigada",
   :title "Pete Seeger and the Almanac singers-vnzwXVpZGrA",
+  :url nil,
+  :live nil,
   :playing
   "Pete Seeger and the Almanac singers-vnzwXVpZGrA - Viva La Quince Brigada"}
  {:artist "spazradio",
   :title "hello citizens station id",
+  :url nil,
+  :live nil,
   :playing "hello citizens station id - spazradio"}
  {:artist "spazradio",
   :title "foreign guy station id",
+  :url nil,
+  :live nil,
   :playing "foreign guy station id - spazradio"}
  {:artist "winnie the shit",
   :title "sorry I shook you",
+  :url nil,
+  :live nil,
   :playing "sorry I shook you - winnie the shit"}
- {:artist "", :title "Unknown", :playing "Unknown"}
- {:artist "", :title "2014-08-09-all", :playing "2014-08-09-all"}
- {:title "????", :playing "????"}
- {:title "dj asscrack and esoundc", :playing "dj asscrack and esoundc"}
- {:title "experimental sound collages by esoundc - ",
+ {:artist "",
+  :title "Unknown",
+  :url nil,
+  :live nil,
+  :playing "Unknown"}
+ {:artist "",
+  :title "2014-08-09-all",
+  :url nil,
+  :live nil,
+  :playing "2014-08-09-all"}
+ {:artist nil, :title "????", :url nil, :live nil, :playing "????"}
+ {:artist nil,
+  :title "dj asscrack and esoundc",
+  :url nil,
+  :live nil,
+  :playing "dj asscrack and esoundc"}
+ {:artist nil,
+  :title "experimental sound collages by esoundc - ",
   :url "(null)",
   :live "true",
   :playing "[LIVE!] experimental sound collages by esoundc - "}
- {:title "Sound Dimensions Radio - Eclectic Vinyl",
+ {:artist nil,
+  :title "Sound Dimensions Radio - Eclectic Vinyl",
   :url "www.sounddimensions.blogspot.com",
   :live "true",
   :playing "[LIVE!] Sound Dimensions Radio - Eclectic Vinyl"}
  {:artist "Cultura Subrepticia",
   :title "2018-02-25",
+  :url nil,
+  :live nil,
   :playing "2018-02-25 - Cultura Subrepticia"}
- {:title "Sound Dimensions Radio - Eclectic Vinyl",
+ {:artist nil,
+  :title "Sound Dimensions Radio - Eclectic Vinyl",
   :url "www.sounddimensions.blogspot.com",
   :live "true",
   :playing "[LIVE!] Sound Dimensions Radio - Eclectic Vinyl"}
- {:title "Sound Dimensions Radio - Eclectic Vinyl",
+ {:artist nil,
+  :title "Sound Dimensions Radio - Eclectic Vinyl",
   :url "www.sounddimensions.blogspot.com",
   :live "true",
   :playing "[LIVE!] Sound Dimensions Radio - Eclectic Vinyl"}
- {:title "Cultura Subrepticia - ^&^ -  ",
+ {:artist nil,
+  :title "Cultura Subrepticia - ^&^ -  ",
   :url "bc1qurw9xqlwlg7ryy0ecnazvkarjnttnt86spxnq8",
   :live "true",
   :playing "[LIVE!] Cultura Subrepticia - ^&^ -  "}
  {:artist "MADARO",
   :title "E_MERGE_N_C",
+  :url nil,
+  :live nil,
   :playing "E_MERGE_N_C - MADARO"}
  {:artist "Portlands Most Unwanted",
   :title "2018-01-26",
+  :url nil,
+  :live nil,
   :playing "2018-01-26 - Portlands Most Unwanted"}
  {:artist "spazradio",
   :title "hello citizens station id",
+  :url nil,
+  :live nil,
   :playing "hello citizens station id - spazradio"}
  {:artist "Crass",
   :title "Do They Owe Us A Living-lz-CkbMHAkw",
+  :url nil,
+  :live nil,
   :playing "Do They Owe Us A Living-lz-CkbMHAkw - Crass"}
  {:artist "Mutant Mind Meld",
   :title "2016-06-26",
+  :url nil,
+  :live nil,
   :playing "2016-06-26 - Mutant Mind Meld"}
  {:artist "Portlands Most Unwanted",
   :title "2018-02-23",
+  :url nil,
+  :live nil,
   :playing "2018-02-23 - Portlands Most Unwanted"}
  {:artist "...Stones&boneS...",
   :title "2015-11-06",
+  :url nil,
+  :live nil,
   :playing "2015-11-06 - ...Stones&boneS..."}
  {:artist "",
   :title "darkat-2013-03-05-200001",
+  :url nil,
+  :live nil,
   :playing "darkat-2013-03-05-200001"}
  {:artist "...Stones&boneS...",
   :title "2018-04-14",
+  :url nil,
+  :live nil,
   :playing "2018-04-14 - ...Stones&boneS..."}
  {:artist "Sound Dimensions Radio",
   :title "2018-02-21",
+  :url nil,
+  :live nil,
   :playing "2018-02-21 - Sound Dimensions Radio"}
  {:artist "Portlands Most Unwanted",
   :title "2018-01-19",
+  :url nil,
+  :live nil,
   :playing "2018-01-19 - Portlands Most Unwanted"}
- {:artist "", :title "2014-05-25-all", :playing "2014-05-25-all"}
+ {:artist "",
+  :title "2014-05-25-all",
+  :url nil,
+  :live nil,
+  :playing "2014-05-25-all"}
  {:artist "69 DB",
   :title "Live San Francisco mixtape",
+  :url nil,
+  :live nil,
   :playing "Live San Francisco mixtape - 69 DB"}
  {:artist "experimental sound collages by esoundc",
   :title "2014-11-10",
+  :url nil,
+  :live nil,
   :playing "2014-11-10 - experimental sound collages by esoundc"})

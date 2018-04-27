@@ -9,6 +9,8 @@
             [taoensso.timbre :as log]
             [utilza.file :as ufile]))
 
+;; these are the keys that this module owns (if i were doing records...)
+(def playing-keys [:artist :title :url :live])
 
 (defn munge-live
   [s]
@@ -32,9 +34,11 @@
       (dissoc :artist)
       (dissoc :artist_clean)))
 
+
+
 (defn filter-keys
   [m]
-  (select-keys m [:artist :title :url :live]))
+  (select-keys m playing-keys))
 
 (defn mangle-from-filename
   [filename]
@@ -79,12 +83,21 @@
                                 (not (empty? artist)) (str " - " artist))
                        live  (str "[LIVE!] "))  ))
 
+
+(defn own-keys
+  "Takes a map.
+  Returns a map with all the playing-keys present and empty, unless overridden by values in map."
+  [m]
+  (-> playing-keys
+      (zipmap (repeat nil))
+      (merge m)))
+
 (defn the-mystery
   [{:keys [title] :as m}]
   (cond-> m
     (empty? title) (assoc :title "????")))
 
-(def parse (comp legacy-playing the-mystery filter-keys conditional-mangle))
+(def parse (comp own-keys legacy-playing the-mystery filter-keys conditional-mangle))
 
 
 
@@ -104,7 +117,7 @@
 
 
   
-
+  
 
 
   (ulog/spewer
