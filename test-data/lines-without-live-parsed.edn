@@ -26,25 +26,22 @@
   :playing "2018-03-22 - Spukkin Faceship's Fukkin Spaceship"}
  {:artist nil,
   :title "experimental sound collages by esoundc - ",
-  :description "(null)",
-  :url "(null)",
+  :description "",
+  :url "",
   :live "true",
-  :playing
-  "[LIVE!] experimental sound collages by esoundc -  - (null)"}
+  :playing "[LIVE!] experimental sound collages by esoundc - "}
  {:artist nil,
   :title "experimental sound collages by esoundc - ",
-  :description "(null)",
-  :url "(null)",
+  :description "",
+  :url "",
   :live "true",
-  :playing
-  "[LIVE!] experimental sound collages by esoundc -  - (null)"}
+  :playing "[LIVE!] experimental sound collages by esoundc - "}
  {:artist nil,
   :title "experimental sound collages by esoundc - ",
-  :description "(null)",
-  :url "(null)",
+  :description "",
+  :url "",
   :live "true",
-  :playing
-  "[LIVE!] experimental sound collages by esoundc -  - (null)"}
+  :playing "[LIVE!] experimental sound collages by esoundc - "}
  {:artist "Spukkin FAceship's Fukkin Spaceship",
   :title "2018-02-01",
   :description nil,
@@ -144,11 +141,10 @@
   :playing "dj asscrack and esoundc"}
  {:artist nil,
   :title "experimental sound collages by esoundc - ",
-  :description "(null)",
-  :url "(null)",
+  :description "",
+  :url "",
   :live "true",
-  :playing
-  "[LIVE!] experimental sound collages by esoundc -  - (null)"}
+  :playing "[LIVE!] experimental sound collages by esoundc - "}
  {:artist nil,
   :title "Sound Dimensions Radio - Eclectic Vinyl",
   :description "Eclectic Vinyl",

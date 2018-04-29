@@ -5,6 +5,7 @@
             [com.stuartsierra.component :as component]
             [djdash.stats :as stats]
             [utilza.log :as ulog]
+            [utilza.core :as utilza]
             [djdash.utils :as utils]
             [taoensso.timbre :as log]
             [utilza.file :as ufile]))
@@ -99,7 +100,16 @@
   (cond-> m
     (empty? title) (assoc :title "????")))
 
-(def parse (comp assure-playing-keys the-mystery legacy-playing  filter-keys conditional-mangle))
+
+(defn parse
+  [m]
+  (->> m
+       (utilza/map-vals un-null) 
+       conditional-mangle
+       filter-keys
+       legacy-playing
+       the-mystery
+       assure-playing-keys))
 
 
 
