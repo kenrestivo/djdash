@@ -70,7 +70,7 @@
                                     :target]
   :profiles {:dev {:repl-options {:nrepl-middleware [cemerick.piggieback/wrap-cljs-repl]}
                    :jvm-opts ["-XX:-OmitStackTraceInFastThrow"]
-                   :source-paths ["clj-src" "cljs-src" "dev"]
+                   :source-paths ["clj-src" "cljs-src" "user"]
                    :plugins [[lein-cljsbuild "1.1.1"]
                              [lein-ancient "0.6.10"]
                              [lein-difftest "2.0.0"]
