@@ -5,19 +5,22 @@
             [com.stuartsierra.component :as component]
             [djdash.stats :as stats]
             [utilza.log :as ulog]
+            [utilza.core :as utilza]
             [djdash.utils :as utils]
             [taoensso.timbre :as log]
             [utilza.file :as ufile]))
 
 ;; these are the keys that this module owns (if i were doing records...)
-(def playing-keys [:artist :title :url :live])
+(def playing-keys [:artist :title :description :url :live])
 
-(defn munge-live
+(defn un-null
+  "Some streamers put NULL in there. Annoying. Remove."
   [s]
   (-> s
       (str/replace #"\(null\)" "")))
 
 (defn munge-archives
+  "Archive files have their own special level of annoyingness. Remove garbage"
   [s]
   (-> (ufile/path-sep "/" s)
       last
@@ -28,19 +31,25 @@
       (str/replace #"-\d+kbps" "")))
 
 (defn mangle-from-live
+  "OK, what liquidsoap and icy calls an artist, we call a title."
   [{:keys [artist_clean artist description] :as m}]
   (-> m
-      (assoc :title (munge-live artist) )
+      (assoc :title artist)
       (dissoc :artist)
       (dissoc :artist_clean)))
 
 
 
 (defn filter-keys
-  [m]
-  (select-keys m playing-keys))
+  "We just want the playing-related keys"
+  ([m keys]
+   (select-keys m keys))
+  ([m]
+   (filter-keys m playing-keys)) )
 
 (defn mangle-from-filename
+  "Filenames of archives have to be parsed out into artist and title.
+   This is imprecise and often wrong. Optimize for the case of liquidsoap-created archives."
   [filename]
   (let [[artist title] (-> filename
                            munge-archives
@@ -64,6 +73,7 @@
 
 
 (defn bad?
+  "If there's no artist or title, we got us a problem."
   [{:keys [title artist live]}]
   (or (empty? artist)
       (empty? title)))
@@ -78,6 +88,8 @@
 
 
 (defn legacy-playing
+  "Streaming clients using the old code required a string with the now playing already parsed.
+   Appease them here."
   [{:keys [title artist description live url] :as m}]
   (assoc m :playing  (cond->> (cond-> title
                                 (not (empty? artist)) (str " - " artist)
@@ -85,7 +97,7 @@
                        live  (str "[LIVE!] "))  ))
 
 
-(defn own-keys
+(defn assure-playing-keys
   "Takes a map.
   Returns a map with all the playing-keys present and empty, unless overridden by values in map."
   [m]
@@ -94,11 +106,23 @@
       (merge m)))
 
 (defn the-mystery
+  "What's going on? Who the hell knows. Document the atrocities"
   [{:keys [title] :as m}]
   (cond-> m
     (empty? title) (assoc :title "????")))
 
-(def parse (comp own-keys legacy-playing the-mystery filter-keys conditional-mangle))
+
+(defn parse
+  "The main entry point of the parsing.
+   Moves the map through the chain of parsers, hopefully resulting in something useful."
+  [m]
+  (->> m
+       (utilza/map-vals un-null) 
+       conditional-mangle
+       filter-keys
+       legacy-playing
+       the-mystery
+       assure-playing-keys))
 
 
 
