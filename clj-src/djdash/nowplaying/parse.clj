@@ -14,11 +14,13 @@
 (def playing-keys [:artist :title :description :url :live])
 
 (defn un-null
+  "Some streamers put NULL in there. Annoying. Remove."
   [s]
   (-> s
       (str/replace #"\(null\)" "")))
 
 (defn munge-archives
+  "Archive files have their own special level of annoyingness. Remove garbage"
   [s]
   (-> (ufile/path-sep "/" s)
       last
@@ -39,10 +41,15 @@
 
 
 (defn filter-keys
-  [m]
-  (select-keys m playing-keys))
+  "We just want the playing-related keys"
+  ([m keys]
+   (select-keys m keys))
+  ([m]
+   (filter-keys m playing-keys)) )
 
 (defn mangle-from-filename
+  "Filenames of archives have to be parsed out into artist and title.
+   This is imprecise and often wrong. Optimize for the case of liquidsoap-created archives."
   [filename]
   (let [[artist title] (-> filename
                            munge-archives
@@ -66,6 +73,7 @@
 
 
 (defn bad?
+  "If there's no artist or title, we got us a problem."
   [{:keys [title artist live]}]
   (or (empty? artist)
       (empty? title)))
@@ -80,6 +88,8 @@
 
 
 (defn legacy-playing
+  "Streaming clients using the old code required a string with the now playing already parsed.
+   Appease them here."
   [{:keys [title artist description live url] :as m}]
   (assoc m :playing  (cond->> (cond-> title
                                 (not (empty? artist)) (str " - " artist)
@@ -96,12 +106,15 @@
       (merge m)))
 
 (defn the-mystery
+  "What's going on? Who the hell knows. Document the atrocities"
   [{:keys [title] :as m}]
   (cond-> m
     (empty? title) (assoc :title "????")))
 
 
 (defn parse
+  "The main entry point of the parsing.
+   Moves the map through the chain of parsers, hopefully resulting in something useful."
   [m]
   (->> m
        (utilza/map-vals un-null) 
