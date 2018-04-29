@@ -382,6 +382,11 @@
 	"kind": "{audio=2;video=0;midi=0}",
 	"artist": "experimental sound collages by esoundc", "decoder": "OGG",
 	"temporary": "false", "title": "2014-11-10"
+    },
+    {
+	"description": "bamfic", "artist": "Hugh Magma Nosebleed",
+	"mapped": "true", "artist_clean": "Hugh Magma Nosebleed",
+	"url": "16agaCPQFCHXdZ2A55oQ4n9RV3vxEDnDtf", "live": "true"
     }
     
 

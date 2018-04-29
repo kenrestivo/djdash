@@ -10,9 +10,9 @@
             [utilza.file :as ufile]))
 
 ;; these are the keys that this module owns (if i were doing records...)
-(def playing-keys [:artist :title :url :live])
+(def playing-keys [:artist :title :description :url :live])
 
-(defn munge-live
+(defn un-null
   [s]
   (-> s
       (str/replace #"\(null\)" "")))
@@ -28,9 +28,10 @@
       (str/replace #"-\d+kbps" "")))
 
 (defn mangle-from-live
+  "OK, what liquidsoap and icy calls an artist, we call a title."
   [{:keys [artist_clean artist description] :as m}]
   (-> m
-      (assoc :title (munge-live artist) )
+      (assoc :title artist)
       (dissoc :artist)
       (dissoc :artist_clean)))
 
@@ -85,7 +86,7 @@
                        live  (str "[LIVE!] "))  ))
 
 
-(defn own-keys
+(defn assure-playing-keys
   "Takes a map.
   Returns a map with all the playing-keys present and empty, unless overridden by values in map."
   [m]
@@ -98,7 +99,7 @@
   (cond-> m
     (empty? title) (assoc :title "????")))
 
-(def parse (comp own-keys legacy-playing the-mystery filter-keys conditional-mangle))
+(def parse (comp assure-playing-keys the-mystery legacy-playing  filter-keys conditional-mangle))
 
 
 
