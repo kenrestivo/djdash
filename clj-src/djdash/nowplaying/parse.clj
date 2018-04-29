@@ -78,9 +78,10 @@
 
 
 (defn legacy-playing
-  [{:keys [title artist live url] :as m}]
+  [{:keys [title artist description live url] :as m}]
   (assoc m :playing  (cond->> (cond-> title
-                                (not (empty? artist)) (str " - " artist))
+                                (not (empty? artist)) (str " - " artist)
+                                (not (empty? description)) (str " - " description))
                        live  (str "[LIVE!] "))  ))
 
 
