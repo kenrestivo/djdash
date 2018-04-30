@@ -387,8 +387,12 @@
 	"description": "bamfic", "artist": "Hugh Magma Nosebleed",
 	"mapped": "true", "artist_clean": "Hugh Magma Nosebleed",
 	"url": "16agaCPQFCHXdZ2A55oQ4n9RV3vxEDnDtf", "live": "true"
+    },
+    {
+	"description": " ", "artist": "Hugh Magma Nosebleed -  ", "mapped": "true",
+	"artist_clean": "Hugh Magma Nosebleed",
+	"url": "bitcoincash:16agaCPQFCHXdZ2A55oQ4n9RV3vxEDnDtf", "live": "true"
     }
-    
 
 
 ]

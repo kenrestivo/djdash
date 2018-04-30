@@ -14,10 +14,13 @@
 (def playing-keys [:artist :title :description :url :live])
 
 (defn un-null
-  "Some streamers put NULL in there. Annoying. Remove."
+  "Some streamers put NULL in there, and some have just a space and nothing else. 
+   Annoying. Remove."
   [s]
   (-> s
-      (str/replace #"\(null\)" "")))
+      (str/replace #"\(null\)" "")
+      str/trim
+      (str/replace #"^\s+$" "")))
 
 (defn munge-archives
   "Archive files have their own special level of annoyingness. Remove garbage"

@@ -25,23 +25,23 @@
   :live nil,
   :playing "2018-03-22 - Spukkin Faceship's Fukkin Spaceship"}
  {:artist nil,
-  :title "experimental sound collages by esoundc - ",
+  :title "experimental sound collages by esoundc -",
   :description "",
   :url "",
   :live "true",
-  :playing "[LIVE!] experimental sound collages by esoundc - "}
+  :playing "[LIVE!] experimental sound collages by esoundc -"}
  {:artist nil,
-  :title "experimental sound collages by esoundc - ",
+  :title "experimental sound collages by esoundc -",
   :description "",
   :url "",
   :live "true",
-  :playing "[LIVE!] experimental sound collages by esoundc - "}
+  :playing "[LIVE!] experimental sound collages by esoundc -"}
  {:artist nil,
-  :title "experimental sound collages by esoundc - ",
+  :title "experimental sound collages by esoundc -",
   :description "",
   :url "",
   :live "true",
-  :playing "[LIVE!] experimental sound collages by esoundc - "}
+  :playing "[LIVE!] experimental sound collages by esoundc -"}
  {:artist "Spukkin FAceship's Fukkin Spaceship",
   :title "2018-02-01",
   :description nil,
@@ -140,11 +140,11 @@
   :live nil,
   :playing "dj asscrack and esoundc"}
  {:artist nil,
-  :title "experimental sound collages by esoundc - ",
+  :title "experimental sound collages by esoundc -",
   :description "",
   :url "",
   :live "true",
-  :playing "[LIVE!] experimental sound collages by esoundc - "}
+  :playing "[LIVE!] experimental sound collages by esoundc -"}
  {:artist nil,
   :title "Sound Dimensions Radio - Eclectic Vinyl",
   :description "Eclectic Vinyl",
@@ -173,11 +173,11 @@
   :playing
   "[LIVE!] Sound Dimensions Radio - Eclectic Vinyl - Eclectic Vinyl"}
  {:artist nil,
-  :title "Cultura Subrepticia - ^&^ -  ",
-  :description " ",
+  :title "Cultura Subrepticia - ^&^ -",
+  :description "",
   :url "bc1qurw9xqlwlg7ryy0ecnazvkarjnttnt86spxnq8",
   :live "true",
-  :playing "[LIVE!] Cultura Subrepticia - ^&^ -   -  "}
+  :playing "[LIVE!] Cultura Subrepticia - ^&^ -"}
  {:artist "MADARO",
   :title "E_MERGE_N_C",
   :description nil,
@@ -267,4 +267,10 @@
   :description "bamfic",
   :url "16agaCPQFCHXdZ2A55oQ4n9RV3vxEDnDtf",
   :live "true",
-  :playing "[LIVE!] Hugh Magma Nosebleed - bamfic"})
+  :playing "[LIVE!] Hugh Magma Nosebleed - bamfic"}
+ {:artist nil,
+  :title "Hugh Magma Nosebleed -",
+  :description "",
+  :url "bitcoincash:16agaCPQFCHXdZ2A55oQ4n9RV3vxEDnDtf",
+  :live "true",
+  :playing "[LIVE!] Hugh Magma Nosebleed -"})

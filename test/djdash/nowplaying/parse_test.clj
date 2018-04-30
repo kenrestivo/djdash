@@ -4,6 +4,7 @@
             [utilza.log :as ulog]
             [utilza.repl :as urepl]
             [clj-http.client :as client]
+            [clojure.string :as str]
             [cheshire.core :as json]
             [clojure.edn :as edn]
             [taoensso.timbre :as log]
@@ -86,6 +87,9 @@
        deref
        )
 
+  (empty? " ")
+
+  (str/trim " " )
 
   
   )
