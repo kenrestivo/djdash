@@ -1,0 +1,8 @@
+{
+    "filename": "/usr/share/airtime/public/archives/imported/2/spazradio/unknown/unknown-hello citizens station id-499kbps.ogg",
+    "status": "playing", "source": "archives",
+    "initial_uri": "/usr/share/airtime/public/archives/imported/2/spazradio/unknown/unknown-hello citizens station id-499kbps.ogg",
+    "on_air": "2018/04/11 00:37:04", "rid": "3",
+    "kind": "{audio=2;video=0;midi=0}", "artist": "spazradio", "decoder": "OGG",
+    "temporary": "false", "title": "hello citizens station id"
+}

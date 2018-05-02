@@ -11,7 +11,7 @@
             [utilza.file :as ufile]))
 
 ;; these are the keys that this module owns (if i were doing records...)
-(def playing-keys [:artist :title :description :url :live])
+(def playing-keys [:artist :title :description :url :live :download])
 
 (defn un-null
   "Some streamers put NULL in there, and some have just a space and nothing else. 
@@ -35,11 +35,13 @@
 
 (defn mangle-from-live
   "OK, what liquidsoap and icy calls an artist, we call a title."
-  [{:keys [artist_clean artist description] :as m}]
-  (-> m
-      (assoc :title artist)
-      (dissoc :artist)
-      (dissoc :artist_clean)))
+  [{:keys [artist_clean live artist description] :as m}]
+  (if live
+    (-> m
+        (assoc :title artist)
+        (dissoc :artist)
+        (dissoc :artist_clean))
+    m))
 
 
 
@@ -50,29 +52,43 @@
   ([m]
    (filter-keys m playing-keys)) )
 
+
+(defn make-download
+  [filename]
+  (str/replace-first filename  #"/usr/share/airtime/public/" ""))
+
+(defn artist-title-mangle
+  [{:keys [artist title] :as m} ]
+  (merge m (if (and (not (empty? artist))
+                    (not (empty? title)))
+             {:artist artist
+              :title title}
+             {:title (or artist title)
+              :artist nil})) )
+
+
+(defn add-download
+  [{:keys [filename] :as m}]
+  (if (not (empty? filename))
+    (assoc m :download (make-download filename))
+    m))
+
 (defn mangle-from-filename
   "Filenames of archives have to be parsed out into artist and title.
    This is imprecise and often wrong. Optimize for the case of liquidsoap-created archives."
-  [filename]
-  (let [[artist title] (-> filename
-                           munge-archives
-                           (str/split  #" - " ))]
-    ;; if there's only one, make it a title
-    (if (and (not (empty? artist))
-             (not (empty? title)))
-      {:artist artist
-       :title title}
-      {:title (or artist title)
-       :artist ""})))
+  [{:keys [artist title filename] :as m} ]
+  (if (and (not (empty? filename))
+           (empty? title)
+           (empty? artist)) 
+    (let [[artist title] (-> filename
+                             munge-archives
+                             (str/split  #" - " ))]
+      (log/debug "have to guess from filename:" artist title)
+      (assoc m
+             :artist artist
+             :title title))
+    m))
 
-(defn mangle
-  "We know what we got ain't good. Make it good now. 
-   Good luck, and goddess bless"
-  [{:keys [filename source live] :as m}]
-  (cond (not (empty? live)) (mangle-from-live m)
-        (not (empty? filename)) (-> m
-                                    (merge (mangle-from-filename filename))) 
-        true m))
 
 
 (defn bad?
@@ -81,13 +97,6 @@
   (or (empty? artist)
       (empty? title)))
 
-(defn conditional-mangle
-  "Always mangle live shows, and anything with no artist or title"
-  [{:keys [live] :as m}]
-  (if (or (-> live empty? not)
-          (bad? m))  
-    (mangle m)
-    m))
 
 
 (defn legacy-playing
@@ -116,12 +125,15 @@
 
 
 (defn parse
-  "The main entry point of the parsing.
+  "The main entry point of the parsing. It's a chain much like ring handlers.
    Moves the map through the chain of parsers, hopefully resulting in something useful."
   [m]
   (->> m
        (utilza/map-vals un-null) 
-       conditional-mangle
+       mangle-from-live
+       artist-title-mangle
+       mangle-from-filename
+       add-download
        filter-keys
        legacy-playing
        the-mystery
@@ -157,7 +169,7 @@
           )))
 
 
-  
+
   
   
   )
