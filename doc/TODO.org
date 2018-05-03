@@ -1,5 +1,7 @@
 TODO for dj dash
 
+DJ Dash TO DO
+
 * pass url from liq to now playing
 ** DONE  rrsearch liq telnet cmds
 ** DONE  decide: either get liquidsoap to pass it thru to icecast, or blow off using icecast for now playing
@@ -30,7 +32,7 @@ TODO for dj dash
 ** DONE matrix posting will be broken, needs to be fixed too.
 *** DONE know what? don't break the API. munge playing properly, the old fashioned way.
 ** NOWHERE mod the cljs in now playing in djdash 
-** TODO mod the js in now playing in spaz radio
+** DONE mod the js in now playing in spaz radio
 ** fucking liquidsoap
 *** DONE is being a pain in the ass
    #+BEGIN_SRC text
@@ -41,4 +43,11 @@ TODO for dj dash
      (...)->unit
  #+END_SRC
 ** TODO when djdash starts, since it doesn't poll, it has NFI what's now playing, have to force it somehow
+*** TODO add a listener in liquidoap 1234 telnet interface, to force push metadata
+*** TODO at startup time, hit that 1234 port
 ** DONE live and url need to be cleared out at mod time
+* TODO show the DJ's bitcoin url in the dashboard
+** TODO pull it in from sente, i think it comes in as part of metadata anyway.
+* TODO show tx history log in dashboard
+** TODO add a listener in djdash to track tx'es on addresses
+** TODO push via sente or mqtt to client
