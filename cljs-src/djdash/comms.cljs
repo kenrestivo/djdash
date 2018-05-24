@@ -168,7 +168,8 @@
            (-> js/settings ;; these are the settings passed in from the html. hacky, but necessary
                utils/un-json
                :chat 
-               (merge {:onMessage #(swap! state/app-state update-in [:chat :messages] 
+               (merge {:onMessage #(swap! state/app-state update-in [:chat :messages]
+                                          ;; TODO: add timestamp after unjsoning
                                           (fn [o] (cons (utils/un-json %) o)))
                        :onRosterChanged #(swap! state/app-state assoc-in [:chat :users] (utils/un-json %))
                        :onConnected (fn [_]
