@@ -164,9 +164,10 @@
       [:div {:id "messages"}
        [:ul {:class "list-group"}
         ;; this contrived index will work for the moment. timestamp, maybe, but that might be tricky
-        (for [{:keys [user message idx]}  (map-indexed #(assoc %2 :idx %1) msgs)]
+        (for [{:keys [user message time_received idx]}  (map-indexed #(assoc %2 :idx %1) msgs)]
           [:li {:class "list-group-item"
                 :key  (str "msg" idx)}
+           [:span {:class "timestamp"} (str "(" time_received ") ")]
            [:span {:class "handle"} (str user ": ")]
            [:span {:class "message"} message]])]])
     (catch :default e
