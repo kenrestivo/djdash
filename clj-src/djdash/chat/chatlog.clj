@@ -13,7 +13,7 @@
 (defn get-from-db
   [conn]
   (try
-    (->> {:select [[:username :user] :message]
+    (->> {:select [[:username :user :time_received] :message]
           :from [:messages]
           :order-by [[:time_received :desc]]
           :limit chat-log-limit}
