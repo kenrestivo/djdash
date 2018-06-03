@@ -35,13 +35,13 @@ DJ Dash TO DO
 ** DONE mod the js in now playing in spaz radio
 ** fucking liquidsoap
 *** DONE is being a pain in the ass
-   #+BEGIN_SRC text
+	#+BEGIN_SRC text
    At /usr/local/lib/python2.7/dist-packages/airtime_playout-1.0-py2.7.egg/liquidsoap/library/utils.liq, line 769, char 38-42:
    this value has type
      (...)->(_*_)
    but it should be a subtype of
      (...)->unit
- #+END_SRC
+	#+END_SRC
 ** TODO when djdash starts, since it doesn't poll, it has NFI what's now playing, have to force it somehow
 *** TODO add a listener in liquidoap 1234 telnet interface, to force push metadata
 *** TODO at startup time, hit that 1234 port
@@ -51,3 +51,18 @@ DJ Dash TO DO
 * TODO show tx history log in dashboard
 ** TODO add a listener in djdash to track tx'es on addresses
 ** TODO push via sente or mqtt to client
+
+* TODO Show tx history log in dashboard
+  #9 opened on May 2 by kenrestivo
+* TODO Show the DJ's bitcoin url in the dashboard
+  #8 opened on May 2 by kenrestivo
+* TODO Use macaroon not username/pw for matrix login
+  #7 opened on Jul 3, 2017 by kenrestivo
+* TODO Username is null after first login
+  #6 opened on Jan 29, 2016 by kenrestivo
+* TODO Map markers need cleared at page load
+  #5 opened on Jan 29, 2016 by kenrestivo
+* TODO Upgrading to new Timbre and Sente breaks Sente
+  #4 opened on Jan 25, 2016 by kenrestivo
+* TODO Decomplect app by moving pubsub from sente and web files to MQTT
+  #2 opened on Nov 25, 2015 by kenrestivo
